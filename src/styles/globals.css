@@ -116,3 +116,74 @@
     background-size: 0 2px, 100% 2px;
   }
 }
+
+.loading-screen {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-screen .bars,
+.loader .bars {
+  width: max-content;
+  height: max-content;
+  display: flex;
+  align-items: center;
+}
+
+.loading-screen .bars div,
+.loader .bars div {
+  width: 3px;
+  height: 25px;
+  margin-inline: 5px;
+  background: #2d2d2d;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  transform-style: preserve-3d;
+  animation: stretch 0.5s ease-in infinite;
+}
+
+.loading-screen .bars div:nth-of-type(2),
+.loader .bars div:nth-of-type(2) {
+  animation-delay: 0.1s;
+}
+
+.loading-screen .bars div:last-of-type,
+.loader .bars div:last-of-type {
+  animation-delay: 0.2s;
+}
+
+@keyframes stretch {
+  0% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0);
+  }
+}
+
+img {
+  user-select: none;
+}
+
+.skeleton-load {
+  animation: skeleton-load 1s linear infinite alternate;
+  overflow-x: hidden;
+  animation-delay: calc(0.1 * var(--delay));
+}
+
+@keyframes skeleton-load {
+  0% {
+    background: rgba(255, 255, 255, 0.7);
+  }
+  50% {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
