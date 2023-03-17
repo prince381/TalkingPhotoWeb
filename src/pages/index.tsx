@@ -13,7 +13,7 @@ export default function Home() {
       <main>
         <div className='flex h-screen w-screen flex-col items-center justify-center'>
           <div className='text-2xl'>Talking Photo</div>
-          <Link href='/create'>
+          <Link href='/get-started'>
             <motion.button
               whileTap={{ scale: 1.05 }}
               whileHover={{ scale: 1.05 }}

@@ -154,15 +154,15 @@ export default function CreateVideo() {
         className={`fixed left-0 top-0 z-50 flex h-screen w-screen items-center justify-center ${
           voiceModalActive
             ? 'pointer-events-auto visible opacity-100'
-            : 'pointer-events-none hidden opacity-0'
+            : 'pointer-events-none hidden opacity-0 delay-75'
         } transition-all`}
         style={{ background: 'rgba(0,0,0,0.3)' }}
       >
         <div
           className={`relative flex h-[80%] w-[90%] max-w-[1000px] flex-col items-center rounded-md bg-gray-100 px-4 pb-7 pt-9 shadow-lg transition-all md:flex-row md:items-start md:pt-12 ${
             voiceModalActive
-              ? 'translate-y-0 translate-x-0 scale-100 opacity-100'
-              : 'translate-y-10 translate-x-10 scale-50 opacity-0'
+              ? 'translate-y-0 scale-100 opacity-100 delay-75'
+              : 'translate-y-10 scale-50 opacity-0'
           }`}
         >
           <i

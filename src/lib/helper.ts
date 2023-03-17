@@ -1,5 +1,8 @@
 /* eslint-disable no-console */
 import axios from 'axios';
+import { collection, DocumentData, getDocs } from 'firebase/firestore';
+
+import { firestore } from '../../firebase/firebase';
 
 type OpenGraphType = {
   siteName: string;
@@ -31,6 +34,7 @@ export type VideoResponseType = {
   video_id: string;
   talking_photo_id: string;
   voice_id: string;
+  id?: string;
   timestamp?: Date;
   error?: Error;
   status?: 'processing' | 'completed' | 'failed';
@@ -143,6 +147,19 @@ export async function fetchResources() {
   }
 }
 
+export async function fetchPhotos() {
+  const url = process.env.NEXT_PUBLIC_SERVER as string;
+  try {
+    const {
+      data: { data: response },
+    } = await axios.get(`${url}/talking_photo/photos`);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
 export async function createVideo(
   payload: VideoPayloadType
 ): Promise<VideoResponseType> {
@@ -151,6 +168,84 @@ export async function createVideo(
     const {
       data: { data: response },
     } = await axios.post(`${url}/talking_photo/create`, payload);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function fetchVideoStatus(id: string) {
+  const url = process.env.NEXT_PUBLIC_SERVER as string;
+  try {
+    const {
+      data: { data: response },
+    } = await axios.get(`${url}/talking_photo/get_video/${id}`);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function queryStore(collection_name: string) {
+  const ref = collection(firestore, collection_name);
+  const data: DocumentData[] = [];
+  try {
+    const docs = await getDocs(ref);
+    docs.forEach((doc) => {
+      const id = doc.id;
+      const docData = doc.data();
+      data.push({ id, ...docData });
+    });
+    return data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+//create a text to speech
+export const getVoiceOver = async (
+  text: string,
+  voice_id: string
+): Promise<Blob> => {
+  const url = `https://api.elevenlabs.io/v1/text-to-speech/${voice_id}`;
+  const config = {
+    headers: {
+      Accept: 'audio/mpeg',
+      'Content-Type': 'application/json',
+      'xi-api-key': process.env.NEXT_PUBLIC_TTS_API_KEY,
+    },
+  };
+  try {
+    const response = await axios.post(
+      url,
+      { text: text },
+      { ...config, responseType: 'blob' }
+    );
+    const blob = response.data;
+    return blob;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+// get all voices
+export async function fetchVoices() {
+  const url = 'https://api.elevenlabs.io/v1/voices';
+  const config = {
+    headers: {
+      Accept: 'audio/json',
+      'Content-Type': 'application/json',
+      'xi-api-key': process.env.NEXT_PUBLIC_TTS_API_KEY,
+    },
+  };
+  try {
+    const {
+      data: { voices: response },
+    } = await axios.get(url, config);
     return response;
   } catch (error) {
     console.log(error);

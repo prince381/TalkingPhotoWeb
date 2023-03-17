@@ -19,7 +19,7 @@ export default function Document() {
           crossOrigin='anonymous'
         ></link>
       </Head>
-      <body>
+      <body className='dark'>
         <Main />
         <NextScript />
         <script
