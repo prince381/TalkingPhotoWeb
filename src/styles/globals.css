@@ -92,6 +92,11 @@
   }
 }
 
+body {
+  background: #fff;
+  color: #1d1d1d;
+}
+
 @layer utilities {
   .animated-underline {
     background-image: linear-gradient(#33333300, #33333300),
@@ -124,8 +129,8 @@
   width: 100vw;
   height: 100vh;
   z-index: 100;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -181,9 +186,103 @@ img {
 
 @keyframes skeleton-load {
   0% {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(0, 0, 0, 0.1);
   }
   50% {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.04);
   }
+}
+
+.checkbox {
+  font-size: 10px;
+}
+
+.checkbox input,
+.radio input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+.checkbox input:checked + label::before {
+  background: rgba(76, 0, 130, 0.7);
+  border: none;
+}
+
+.checkbox input:checked + label::after {
+  transform: translateY(-70%) rotateZ(45deg) scale(1);
+}
+
+.radio input:checked + label::after {
+  transform: translateY(-50%) scale(1);
+}
+
+.checkbox label,
+.radio label {
+  text-align: left;
+  font-size: 13px;
+  display: inline-block;
+  width: max-content;
+  transform: translateX(30px);
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+@media screen and (min-width: 768px) {
+  .checkbox label,
+  .radio label {
+    font-size: 15px;
+  }
+}
+
+.checkbox label::before,
+.radio label::before {
+  content: '';
+  position: absolute;
+  left: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  transition: background 0.3s ease, border 0.3s ease;
+}
+
+.radio label::before {
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+}
+
+.checkbox label::after {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: 50%;
+  transform: translateY(-30%) rotateZ(45deg) scale(0);
+  width: 6px;
+  height: 10px;
+  border: 1.5px solid #fff;
+  border-left: none;
+  border-top: none;
+  z-index: 1;
+  transition: transform 0.2s ease;
+}
+
+.radio label::after {
+  content: '';
+  position: absolute;
+  left: -23.5px;
+  top: 50%;
+  background: rgba(76, 0, 130, 0.7);
+  transform: translateY(-50%) scale(0);
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  z-index: 1;
+  transition: transform 0.2s ease;
 }

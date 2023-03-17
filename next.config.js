@@ -8,11 +8,16 @@ const nextConfig = {
   swcMinify: true,
 
   // Uncoment to add domain whitelist
-  // images: {
-  //   domains: [
-  //     'res.cloudinary.com',
-  //   ],
-  // },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'surreal-product.s3.amazonaws.com',
+        port: '',
+        pathname: '/prod/movio/**',
+      },
+    ],
+  },
 
   // SVGR
   webpack(config) {

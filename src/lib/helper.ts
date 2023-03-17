@@ -1,9 +1,42 @@
+/* eslint-disable no-console */
+import axios from 'axios';
+
 type OpenGraphType = {
   siteName: string;
   description: string;
   templateTitle?: string;
   logo?: string;
 };
+
+export type VideoPayloadType = {
+  background?: string;
+  clips: [
+    {
+      avatar_id?: string;
+      avatar_style?: 'normal' | 'circle';
+      talking_photo_id?: string;
+      talking_photo_style?: 'normal' | 'circle';
+      input_text?: string;
+      input_audio?: string;
+      scale?: number;
+      voice_id?: string;
+    }
+  ];
+  ratio: string;
+  test: boolean;
+  version: string;
+};
+
+export type VideoResponseType = {
+  video_id: string;
+  talking_photo_id: string;
+  voice_id: string;
+  timestamp?: Date;
+  error?: Error;
+  status?: 'processing' | 'completed' | 'failed';
+  video_url?: string;
+};
+
 // !STARTERCONF This OG is generated from https://github.com/theodorusclarence/og
 // Please clone them and self-host if your site is going to be visited by many people.
 // Then change the url and the default logo.
@@ -96,3 +129,31 @@ export const blobToB64Url = (data: Blob): Promise<string> => {
     };
   });
 };
+
+export async function fetchResources() {
+  const url = process.env.NEXT_PUBLIC_SERVER as string;
+  try {
+    const {
+      data: { data: response },
+    } = await axios.get(`${url}/talking_photo/all`);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function createVideo(
+  payload: VideoPayloadType
+): Promise<VideoResponseType> {
+  const url = process.env.NEXT_PUBLIC_SERVER as string;
+  try {
+    const {
+      data: { data: response },
+    } = await axios.post(`${url}/talking_photo/create`, payload);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
