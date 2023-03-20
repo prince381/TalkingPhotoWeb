@@ -125,7 +125,7 @@ export default function Gallery() {
             </div>
           </div>
           {loading ? (
-            <div className='embed flex min-h-[70vh] w-full items-center justify-center'>
+            <div className='body-embed flex min-h-[70vh] w-full items-center justify-center'>
               <Loader loading={loading} />
             </div>
           ) : (

@@ -270,6 +270,15 @@ body.dark .header {
   }
 }
 
+.body-embed .loader .bars div {
+  background: #1d1d1d;
+  height: 20px;
+}
+
+body.dark .body-embed .loader .bars div {
+  background: #e5e5e5;
+}
+
 img {
   user-select: none;
 }
