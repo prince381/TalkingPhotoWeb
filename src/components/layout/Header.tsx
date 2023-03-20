@@ -6,7 +6,7 @@ import Switch from '@/components/Switch';
 
 const links = [
   { href: '/get-started', label: 'Get started' },
-  { href: '/generate', label: 'Generate' },
+  { href: '/create', label: 'Generate' },
   { href: '/gallery', label: 'Gallery' },
 ];
 
