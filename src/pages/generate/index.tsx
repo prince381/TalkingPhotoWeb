@@ -151,7 +151,7 @@ export default function CreateVideo() {
     <>
       <LoadingScreen loading={loading} />
       <div
-        className={`fixed left-0 top-0 z-50 flex h-screen w-screen items-center justify-center ${
+        className={`fixed left-0 top-0 z-[200] flex h-screen w-screen items-center justify-center ${
           voiceModalActive
             ? 'pointer-events-auto visible opacity-100'
             : 'pointer-events-none hidden opacity-0 delay-75'
@@ -231,11 +231,11 @@ export default function CreateVideo() {
                     .map((voice: Voice) => {
                       return (
                         <div
-                          className='h-max w-full max-w-[100%] cursor-pointer rounded-md border border-indigo-200 bg-white p-1.5'
+                          className='h-max w-full max-w-[100%] cursor-pointer rounded-md border border-blue-200 bg-white p-1.5'
                           key={voice.voice_id}
                         >
                           <div
-                            className='relative flex h-full w-full items-center rounded-md bg-gray-100 p-3 transition-all hover:bg-indigo-50'
+                            className='relative flex h-full w-full items-center rounded-md bg-gray-100 p-3 transition-all hover:bg-blue-50'
                             onClick={() => {
                               setSelectedVoice(voice);
                               setVoiceModalActive(false);
@@ -295,7 +295,7 @@ export default function CreateVideo() {
                 )}
               </div>
               <button
-                className='mb-8 hidden cursor-pointer rounded-md bg-indigo-700 px-9 py-3 text-white lg:block'
+                className='mb-8 hidden cursor-pointer rounded-md bg-blue-700 px-9 py-3 text-white lg:block'
                 onClick={sendVideo}
               >
                 Create Video
@@ -312,7 +312,7 @@ export default function CreateVideo() {
                           <div
                             className={`mr-2.5 mb-2 cursor-pointer rounded-full bg-gray-300 p-0.5 last:mr-0 lg:mr-4 ${
                               selectedAvatar.id === photo.id
-                                ? 'outline outline-2 outline-indigo-900'
+                                ? 'outline outline-2 outline-blue-900'
                                 : ''
                             }`}
                             key={photo.id}
@@ -339,9 +339,7 @@ export default function CreateVideo() {
                   <div className='mb-2.5 flex h-max w-full items-center px-2'>
                     <button
                       className={`border-none bg-none px-4 py-2 text-sm outline-none ${
-                        activeTab === 'text'
-                          ? 'bg-gray-100  text-indigo-700'
-                          : ''
+                        activeTab === 'text' ? 'bg-gray-100  text-blue-700' : ''
                       } cursor-pointer rounded-md transition-all`}
                       onClick={() => setActiveTab('text')}
                     >
@@ -351,7 +349,7 @@ export default function CreateVideo() {
                     <button
                       className={`border-none bg-none px-4 py-2 text-sm outline-none ${
                         activeTab === 'audio'
-                          ? 'bg-gray-100  text-indigo-700'
+                          ? 'bg-gray-100  text-blue-700'
                           : ''
                       } cursor-pointer rounded-md transition-all`}
                       onClick={() => setActiveTab('audio')}
@@ -366,23 +364,23 @@ export default function CreateVideo() {
                         <textarea
                           name='text_script'
                           id='textScript'
-                          className='border-1 h-[20vh] max-h-[200px] w-full resize-none rounded-md border border-indigo-700 outline-none'
+                          className='border-1 h-[20vh] max-h-[200px] w-full resize-none rounded-md border border-blue-700 outline-none'
                           placeholder='Type or paste a paragraph here...'
                           onChange={(e) => setInputText(e.target.value)}
                         ></textarea>
                         <div className='relative mt-1 text-sm text-gray-400'>
                           or{' '}
-                          <span className='cursor-pointer text-indigo-700'>
+                          <span className='cursor-pointer text-blue-700'>
                             Generate
                           </span>{' '}
                           text script with GPT-4
                         </div>
                       </div>
                     ) : (
-                      <div className='flex h-[25vh] max-h-[200px] w-full items-center justify-center rounded-md border border-dashed border-indigo-700 bg-slate-50'>
+                      <div className='flex h-[25vh] max-h-[200px] w-full items-center justify-center rounded-md border border-dashed border-blue-700 bg-slate-50'>
                         <button className='flex cursor-pointer flex-col items-center border-none bg-none outline-none'>
-                          <i className='fas fa-upload mb-1.5 text-5xl text-indigo-700'></i>
-                          <span className='text-sm text-indigo-700'>
+                          <i className='fas fa-upload mb-1.5 text-5xl text-blue-700'></i>
+                          <span className='text-sm text-blue-700'>
                             Choose a File to upload
                           </span>
                           <span className='text-sm text-gray-400'>
@@ -394,9 +392,9 @@ export default function CreateVideo() {
                     )}
                   </div>
                   {activeTab === 'text' ? (
-                    <div className='mt-5 h-max w-full max-w-[300px] cursor-pointer rounded-md border border-indigo-200 bg-white p-1.5'>
+                    <div className='mt-5 h-max w-full max-w-[300px] cursor-pointer rounded-md border border-blue-200 bg-white p-1.5'>
                       <div
-                        className='relative flex h-full w-full items-center rounded-md bg-gray-100 p-3 transition-all hover:bg-indigo-50'
+                        className='relative flex h-full w-full items-center rounded-md bg-gray-100 p-3 transition-all hover:bg-blue-50'
                         onClick={() => setVoiceModalActive(true)}
                       >
                         <i className='fas fa-microphone mr-3 text-lg'></i>
@@ -433,7 +431,7 @@ export default function CreateVideo() {
                     </div>
                   ) : null}
                   <button
-                    className='mt-8 cursor-pointer rounded-md bg-indigo-700 px-9 py-3 text-white lg:hidden'
+                    className='mt-8 cursor-pointer rounded-md bg-blue-700 px-9 py-3 text-white lg:hidden'
                     onClick={sendVideo}
                   >
                     Create Video

@@ -19,7 +19,7 @@ export default function Document() {
           crossOrigin='anonymous'
         ></link>
       </Head>
-      <body className='dark'>
+      <body className='w-screen overflow-x-hidden'>
         <Main />
         <NextScript />
         <script

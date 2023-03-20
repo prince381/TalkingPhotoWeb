@@ -4,6 +4,7 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable no-console */
 import { doc, DocumentData, setDoc } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import banner from 'public/images/music-banner.jpg';
@@ -14,13 +15,14 @@ import {
   createVideo,
   fetchPhotos,
   fetchVoices,
+  getVoiceOver,
   queryStore,
   VideoPayloadType,
 } from '@/lib/helper';
 
 import Loader from '@/components/Loader';
 
-import { firestore } from '../../../firebase/firebase';
+import { firestore, storage } from '../../../firebase/firebase';
 
 const getPremadeVideos = async () => {
   try {
@@ -62,9 +64,9 @@ export default function GetStarted() {
     },
     { title: 'Mockingbird', artiste: 'Eminem', id: 'mockingbird' },
     {
-      title: 'Started from the bottom',
-      artiste: 'Drake',
-      id: 'started_from_the_bottom1',
+      title: 'Amari',
+      artiste: 'J Cole',
+      id: 'amari',
     },
     { title: 'Mockingbird', artiste: 'Eminem', id: 'mockingbird1' },
   ];
@@ -130,17 +132,16 @@ export default function GetStarted() {
     });
   };
 
-  const sendVideo = async (avatar_id: string, textScript: string) => {
-    if (!avatar_id || !textScript) return;
+  const sendVideo = async (avatar_id: string, audio: string) => {
+    if (!avatar_id || !audio) return;
     const payload: VideoPayloadType = {
       background: '#000000',
       clips: [
         {
           talking_photo_id: avatar_id,
           talking_photo_style: 'normal',
-          input_text: textScript,
+          input_audio: audio,
           scale: 1,
-          voice_id: '077ab11b14f04ce0b49b5f6e5cc20979',
         },
       ],
       ratio: '16:9',
@@ -163,6 +164,7 @@ export default function GetStarted() {
           video_id,
         });
         setLoading(false);
+        router.push('/videos');
         // console.log('Video uploaded successfully and will complete soon', response);
       } else {
         setLoading(false);
@@ -179,21 +181,24 @@ export default function GetStarted() {
     console.log(inputText, talkingAvatar);
     setLoading(true);
     try {
-      await sendVideo(talkingAvatar.id, inputText);
-      router.push('/videos');
-      // const target = premade?.find(doc => doc.id === talkingAvatar.id);
-      // if (target) {
-      //   const targetName = target.name.toLowerCase();
-      //   const targetVoice = voices.find(
-      //     (voice: any) => voice.category === 'cloned' && voice.name === targetName
-      //   );
-      //   const voiceBlob = await getVoiceOver(inputText, targetVoice.voice_id);
-      //   const voiceDataURL = await blobToB64Url(voiceBlob);
-      //   await sendVideoWithAudio(talkingAvatar.id, voiceDataURL);
-      //   // console.log('Target name:', targetName, targetVoice)
-      // } else {
-      //   setLoading(false)
-      // }
+      const target = premade?.find((doc) => doc.id === talkingAvatar.id);
+      if (target) {
+        const targetName = target.name.toLowerCase();
+        const targetVoice = voices.find(
+          (voice: any) =>
+            voice.category === 'cloned' && voice.name === targetName
+        );
+        const voiceBlob = await getVoiceOver(inputText, targetVoice.voice_id);
+        const audioRef = ref(
+          storage,
+          `generatedPodcasts/${talkingAvatar.id}.mp3`
+        );
+        await uploadBytes(audioRef, voiceBlob);
+        const audioUrl = await getDownloadURL(audioRef);
+        await sendVideo(talkingAvatar.id, audioUrl);
+      } else {
+        setLoading(false);
+      }
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -204,7 +209,7 @@ export default function GetStarted() {
   return (
     <>
       {/* <LoadingScreen loading={loadingPhotos && loadingPremade} /> */}
-      <div className='mx-auto h-max w-[95%] max-w-[1200px] py-6'>
+      <div className='mx-auto h-max w-[95%] max-w-[1200px] py-10'>
         <div className='flex h-max w-full flex-col items-center'>
           <div className='card flex h-max w-full flex-col items-center rounded-lg px-2.5 py-4 shadow-sm xs:px-4 md:flex-row lg:px-10 lg:py-6 xl:py-10'>
             <div className='h-full w-full md:h-fit md:w-[60%]'>
@@ -217,7 +222,7 @@ export default function GetStarted() {
                           .filter((photo: Photo) => !photo.is_preset)
                           .map((photo: Photo, index: number) => (
                             <div
-                              className='mr-2.5 mb-4 cursor-pointer rounded-full bg-gray-300 outline outline-4 outline-blue-900 last:mr-0 lg:mr-4 lg:last:mb-0'
+                              className='mr-4 mb-4 cursor-pointer rounded-full bg-gray-300 outline outline-4 outline-blue-900 last:mr-0 lg:last:mb-0'
                               key={photo.id}
                               title={getName(photo.id)}
                               onClick={() => {
@@ -390,7 +395,7 @@ export default function GetStarted() {
                                   className='max-h-[75px] min-h-[75px] min-w-[75px] max-w-[75px] rounded-full lg:max-h-[100px] lg:min-h-[100px] lg:min-w-[100px] lg:max-w-[100px]'
                                 />
                               </div>
-                              <p className='text-xxs badge inline-block rounded-2xl px-3 py-1 text-center text-white md:text-xs lg:text-sm'>
+                              <p className='text-xxs badge inline-block rounded-2xl px-3 py-1 text-center md:text-xs lg:text-sm'>
                                 {getName(photo.id)}
                               </p>
                             </div>
@@ -398,7 +403,7 @@ export default function GetStarted() {
                       : [0, 1, 2, 3].map((num: number) => (
                           <div
                             key={num}
-                            className='skeleton-load mr-2.5 mb-2 max-h-[75px] min-h-[75px] min-w-[75px] max-w-[75px] rounded-full last:mr-0 lg:max-h-[90px] lg:min-h-[90px] lg:min-w-[90px] lg:max-w-[90px]'
+                            className='skeleton-load mr-2.5 mb-2 max-h-[75px] min-h-[75px] min-w-[75px] max-w-[75px] rounded-full last:mr-0 lg:max-h-[100px] lg:min-h-[100px] lg:min-w-[100px] lg:max-w-[100px]'
                           ></div>
                         ))}
                   </div>

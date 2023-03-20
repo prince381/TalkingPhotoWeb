@@ -1,8 +1,15 @@
 /* eslint-disable no-console */
 import axios from 'axios';
-import { collection, DocumentData, getDocs } from 'firebase/firestore';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  DocumentData,
+  getDocs,
+} from 'firebase/firestore';
+import { deleteObject, ref } from 'firebase/storage';
 
-import { firestore } from '../../firebase/firebase';
+import { firestore, storage } from '../../firebase/firebase';
 
 type OpenGraphType = {
   siteName: string;
@@ -39,6 +46,16 @@ export type VideoResponseType = {
   error?: Error;
   status?: 'processing' | 'completed' | 'failed';
   video_url?: string;
+};
+
+export type VideoMetaData = {
+  talking_photo: {
+    circle_image: string;
+    id: string;
+    image_url: string;
+  };
+  timestamp: Date;
+  video_id: string;
 };
 
 // !STARTERCONF This OG is generated from https://github.com/theodorusclarence/og
@@ -183,8 +200,8 @@ export async function fetchVideoStatus(id: string) {
     } = await axios.get(`${url}/talking_photo/get_video/${id}`);
     return response;
   } catch (error) {
-    console.log(error);
-    throw error;
+    console.log(error, id);
+    return null;
   }
 }
 
@@ -202,6 +219,28 @@ export async function queryStore(collection_name: string) {
   } catch (error) {
     console.log(error);
     throw error;
+  }
+}
+
+export async function purgeStorage(ref_name: string, fileList: string[]) {
+  if (fileList.length === 0) return;
+
+  for (const file of fileList) {
+    const fileRef = ref(storage, `${ref_name}/${file}`);
+    try {
+      await deleteObject(fileRef);
+    } catch (error) {
+      console.log(file, 'does not exist..');
+    }
+  }
+}
+
+export async function deleteDocument(collection_name: string, doc_id: string) {
+  const ref = doc(firestore, collection_name, doc_id);
+  try {
+    await deleteDoc(ref);
+  } catch (error) {
+    console.log('Document with id', doc_id, 'does not exist');
   }
 }
 

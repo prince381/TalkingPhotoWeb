@@ -95,7 +95,7 @@
 body {
   background: #fff;
   color: #2d2d2d;
-  transition: all;
+  transition: all 0.3s ease;
 }
 
 body.dark {
@@ -106,31 +106,38 @@ body.dark {
 body .card {
   background: #eeeeee;
   color: #2e2e2e;
+  transition: all 0.3s ease;
 }
 
 body .sub-card {
   background: #dadada;
   color: #2e2e2e;
+  transition: all 0.3s ease;
 }
 
 body.dark textarea.sub-card {
   color: #e5e5e5;
+  transition: all 0.3s ease;
 }
 
 .sub-card h4 {
   color: #404040;
+  transition: color 0.3s ease;
 }
 
 .sub-card p {
   color: #8c8b8b;
+  transition: color 0.3s ease;
 }
 
 .card-selected h4 {
   color: #e5e5e5;
+  transition: color 0.3s ease;
 }
 
 .card-selected p {
   color: #d3d3d3;
+  transition: color 0.3s ease;
 }
 
 body.dark .card {
@@ -148,6 +155,33 @@ body.dark h3,
 body.dark h4,
 body.dark h5 {
   color: #e5e5e5;
+  transition: color 0.3s ease;
+}
+
+.icon-light {
+  background-color: #8c8b8b;
+  transition: color 0.3s ease;
+}
+
+.icon-light:hover {
+  background-color: #404040;
+}
+
+body.dark .icon-light {
+  background-color: #404040;
+}
+
+body.dark .icon-light:hover {
+  background-color: #8c8b8b;
+}
+
+.header {
+  background: #fff;
+  transition: background 0.3s ease;
+}
+
+body.dark .header {
+  background: #1d1d1d;
 }
 
 @layer utilities {
@@ -181,12 +215,16 @@ body.dark h5 {
   top: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 100;
+  z-index: 1000;
   background: rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.modal {
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .loading-screen .bars,
@@ -351,4 +389,53 @@ img {
 
 .text-xxs {
   font-size: 10px;
+}
+
+.switch label {
+  display: inline-block;
+  position: relative;
+  transform: translateX(-40px);
+}
+
+@media screen and (min-width: 400px) {
+  .switch label {
+    transform: translateX(0);
+  }
+}
+
+.switch label::before {
+  content: '';
+  position: absolute;
+  background: rgba(0, 0, 0, 0.1);
+  transform: translateY(-50%);
+  top: 50%;
+  width: 60px;
+  height: 30px;
+  border-radius: 35px;
+  right: -70px;
+  z-index: 1;
+  transition: background 0.3s ease;
+}
+
+.switch input:checked + label::before {
+  background: rgb(53, 86, 237);
+}
+
+.switch label::after {
+  content: '';
+  position: absolute;
+  background: rgb(53, 86, 237);
+  transform: translateY(-50%);
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  top: 50%;
+  right: -39px;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.switch input:checked + label::after {
+  right: -68px;
+  background: #fff;
 }
