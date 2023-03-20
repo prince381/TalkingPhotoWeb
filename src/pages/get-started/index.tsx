@@ -164,7 +164,7 @@ export default function GetStarted() {
           video_id,
         });
         setLoading(false);
-        router.push('/videos');
+        router.push('/gallery');
         // console.log('Video uploaded successfully and will complete soon', response);
       } else {
         setLoading(false);
@@ -268,19 +268,19 @@ export default function GetStarted() {
                       }}
                     ></video>
                   ) : (
-                    <div className='skeleton-load absolute left-0 top-0 z-10 h-full w-full lg:max-h-[310px]'></div>
+                    <div className='skeleton-load z-1 absolute left-0 top-0 h-full w-full lg:max-h-[310px]'></div>
                   )}
                   {!videoLoaded ? (
-                    <div className='skeleton-load absolute left-0 top-0 z-10 h-full w-full lg:max-h-[310px]'></div>
+                    <div className='skeleton-load z-1 absolute left-0 top-0 h-full w-full lg:max-h-[310px]'></div>
                   ) : null}
                   {vidOnPlay !== 'premade-vid' ? (
                     <i
-                      className='fas fa-play absolute left-[50%] top-[50%] z-50 -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
+                      className='fas fa-play z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
                       onClick={() => playCurrentVideo('premade-vid')}
                     ></i>
                   ) : (
                     <i
-                      className='fas fa-pause absolute left-[50%] top-[50%] z-50 -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
+                      className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
                       onClick={() => playCurrentVideo('premade-vid')}
                     ></i>
                   )}
@@ -347,12 +347,12 @@ export default function GetStarted() {
                   ></video>
                   {vidOnPlay !== 'demo' ? (
                     <i
-                      className='fas fa-play absolute left-[50%] top-[50%] z-50 -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
+                      className='fas fa-play z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
                       onClick={() => playCurrentVideo('demo')}
                     ></i>
                   ) : (
                     <i
-                      className='fas fa-pause absolute left-[50%] top-[50%] z-50 -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
+                      className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
                       onClick={() => playCurrentVideo('demo')}
                     ></i>
                   )}

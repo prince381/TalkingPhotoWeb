@@ -98,19 +98,19 @@ export default function Gallery() {
   return (
     <>
       {/* <LoadingScreen loading={loading} /> */}
-      <div className={`h-max w-screen ${videoOnPlay ? 'fixed' : ''}`}>
+      <div className={`h-max w-screen ${videoOnPlay ? 'fixed z-10' : ''}`}>
         <div className='mx-auto h-max w-[95%] max-w-[1200px] py-6'>
           <h1 className='text-base'>Videos</h1>
           <div
             id='vidModal'
-            className={`modal fixed left-0 top-0 z-[500] flex h-screen w-screen items-center justify-center ${
+            className={`modal fixed left-0 top-0 z-[1000] flex h-screen w-screen items-center justify-center ${
               videoOnPlay
                 ? 'pointer-events-auto visible opacity-100'
                 : 'pointer-events-none invisible opacity-0'
             } transition-all`}
             onClick={closeVideoModal}
           >
-            <button className='absolute top-8 right-8 z-50 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white lg:h-10 lg:w-10'>
+            <button className='z-1 absolute top-8 right-8 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white lg:h-10 lg:w-10'>
               <i className='fas fa-times text-xl text-white'></i>
             </button>
             <div

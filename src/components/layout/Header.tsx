@@ -23,7 +23,7 @@ export default function Header() {
   // }, [router])
 
   return (
-    <header className='sticky top-0 z-[100] w-full'>
+    <header className='sticky top-0 left-0 z-10 w-screen'>
       <div className='header mx-auto flex h-max w-[95%] max-w-[1200px] flex-col-reverse items-center py-5 xxs:flex-row xxs:justify-between md:py-8'>
         <Link href='/' className='hidden xs:inline'>
           Video Podcast
