@@ -71,7 +71,7 @@ export default function Gallery() {
     (async () => {
       if (videoMetaData && videoMetaData.length > 0) {
         const videoTasks = videoMetaData.map(async (video) => {
-          // console.log(video)
+          console.log(video);
           const status = await fetchVideoStatus(video.video_id);
           return status;
         });
@@ -205,7 +205,7 @@ const VideoCard = ({
           </button>
         </div>
         <div
-          className='relative my-3 h-full max-h-[150px] w-full cursor-pointer bg-black'
+          className='relative my-3 h-[150px] max-h-[150px] w-full cursor-pointer bg-black'
           onClick={() => playVideo(video.video_url as string)}
         >
           <img
