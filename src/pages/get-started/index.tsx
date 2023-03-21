@@ -68,7 +68,7 @@ export default function GetStarted() {
       artiste: 'J Cole',
       id: 'amari',
     },
-    { title: 'Mockingbird', artiste: 'Eminem', id: 'mockingbird1' },
+    { title: 'Rich as F**k', artiste: 'Lil Wayne', id: 'rich_as_fk' },
   ];
 
   const { data: photos, isLoading: loadingPhotos } = useQuery(
