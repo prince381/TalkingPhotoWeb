@@ -1,15 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-console */
-import { DocumentData } from 'firebase/firestore';
+import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 
 import {
   deleteDocument,
   fetchVideoStatus,
-  purgeStorage,
   queryStore,
+  removeFromStorage,
   VideoMetaData,
   VideoResponseType,
 } from '@/lib/helper';
@@ -17,7 +17,10 @@ import {
 import Loader from '@/components/Loader';
 
 export default function Gallery() {
-  const [videos, setVideos] = useState<VideoResponseType[]>([]);
+  const router = useRouter();
+  const [videos, setVideos] = useState<(VideoResponseType & VideoMetaData)[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [videoOnPlay, setVideoOnPlay] = useState(false);
 
@@ -46,6 +49,7 @@ export default function Gallery() {
     const video = document.getElementById('vidonplay') as HTMLVideoElement;
     video.src = src;
     setVideoOnPlay(true);
+    video.oncanplaythrough = () => video.play();
   };
 
   const removeVideo = async (id: string) => {
@@ -59,48 +63,55 @@ export default function Gallery() {
   };
 
   const closeVideoModal = (e: React.MouseEvent<HTMLDivElement>) => {
+    const video = document.getElementById('vidonplay') as HTMLVideoElement;
     const modal = document.getElementById('vidModal') as HTMLDivElement;
     const target = e.target as HTMLElement;
     const content = modal.querySelector('#vidContainer') as HTMLDivElement;
     if (content.contains(target)) return;
+    video.pause();
+    video.src = '';
     setVideoOnPlay(false);
-    console.log(target);
+    // console.log(target);
   };
 
   useEffect(() => {
     (async () => {
       if (videoMetaData && videoMetaData.length > 0) {
         const videoTasks = videoMetaData.map(async (video) => {
-          console.log(video);
           const status = await fetchVideoStatus(video.video_id);
-          return status;
+          const data = { ...video, ...status };
+          // console.log(data);
+          return data;
         });
         const videoData = await Promise.all(videoTasks);
         const availableVideos = videoData.filter((vid) => vid !== null);
         setVideos(availableVideos);
-        setLoading(false);
+        setTimeout(() => setLoading(false), 3000);
       } else setLoading(false);
     })();
   }, [videoMetaData]);
 
   useEffect(() => {
+    console.log(videos);
+  }, [videos]);
+
+  // Remove the temporary saved audio file from storage
+  useEffect(() => {
     (async () => {
-      // console.log(videos)
-      if (videos.length > 0 && videoMetaData) {
-        const fileList = videoMetaData.map(
-          (meta: DocumentData) => `${meta.talking_photo.id}.mp3`
-        );
-        await purgeStorage('generatedPodcasts', fileList);
+      console.log(router.query);
+      const { storageRef, file } = router.query;
+      if (storageRef && file) {
+        await removeFromStorage(storageRef as string, file as string);
       }
     })();
-  }, [videos]);
+  }, [router.query]);
 
   return (
     <>
       {/* <LoadingScreen loading={loading} /> */}
       <div className={`h-max w-screen ${videoOnPlay ? 'fixed z-10' : ''}`}>
         <div className='mx-auto h-max w-[95%] max-w-[1200px] py-6'>
-          <h1 className='text-base'>Videos</h1>
+          <h1 className='text-base md:text-2xl xl:text-4xl'>Videos</h1>
           <div
             id='vidModal'
             className={`modal fixed left-0 top-0 z-[1000] flex h-screen w-screen items-center justify-center ${
@@ -124,38 +135,29 @@ export default function Gallery() {
               ></video>
             </div>
           </div>
-          {loading ? (
+          {loading && videos.length === 0 ? (
             <div className='body-embed flex min-h-[70vh] w-full items-center justify-center'>
               <Loader loading={loading} />
             </div>
+          ) : !loading && videos.length === 0 ? (
+            <div className='flex min-h-[70vh] w-full flex-col items-center justify-center'>
+              <i className='fas fa-folder-open text-5xl text-gray-300'></i>
+              <p className='mt-3 text-center text-base'>
+                You have no videos now! Videos you create will appear here.
+              </p>
+            </div>
           ) : (
-            <div
-              className={`mt-8 h-max w-full ${
-                videoMetaData && videos.length > 0
-                  ? 'grid grid-cols-1 gap-5 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-8'
-                  : ''
-              }`}
-            >
-              {videoMetaData && videos.length > 0 ? (
-                videos.map((video: VideoResponseType, index: number) => {
-                  return (
-                    <VideoCard
-                      video={video}
-                      metadata={videoMetaData[index] as VideoMetaData}
-                      playVideo={playCurrentVideo}
-                      removeVideo={removeVideo}
-                      key={video.id}
-                    />
-                  );
-                })
-              ) : (
-                <div className='flex min-h-[70vh] w-full flex-col items-center justify-center'>
-                  <i className='fas fa-folder-open text-5xl text-gray-300'></i>
-                  <p className='mt-3 text-center text-base'>
-                    You have no videos now! Videos you create will appear here.
-                  </p>
-                </div>
-              )}
+            <div className='mt-8 grid h-max w-full grid-cols-1 gap-5 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-8'>
+              {videos.map((video: VideoResponseType & VideoMetaData) => {
+                return (
+                  <VideoCard
+                    video={video}
+                    playVideo={playCurrentVideo}
+                    removeVideo={removeVideo}
+                    key={video.id}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
@@ -166,35 +168,47 @@ export default function Gallery() {
 
 const VideoCard = ({
   video,
-  metadata,
   playVideo,
   removeVideo,
 }: {
-  video: VideoResponseType;
-  metadata: VideoMetaData;
+  video: VideoResponseType & VideoMetaData;
   playVideo: (src: string) => void;
   removeVideo: (id: string) => void;
 }) => {
+  const [copied, setCopied] = useState(false);
+
   return (
     <div className='flex flex-col items-center'>
       <div className='card group relative h-max w-full max-w-[300px] rounded-md py-3 transition-all hover:shadow-lg'>
         <div className='flex items-center justify-end px-3 group-hover:visible group-hover:opacity-100 lg:invisible lg:opacity-0'>
-          <a
+          {/* <a
             href={video.video_url}
             download
             className='icon-light mr-2.5 flex items-center justify-center rounded-md p-2'
             title='Download video'
           >
             <i className='fas fa-download text-white'></i>
-          </a>
+          </a> */}
           <button
-            className='icon-light mr-2.5 flex items-center justify-center rounded-md p-2'
-            onClick={() =>
-              navigator.clipboard.writeText(video.video_url as string)
-            }
+            className={`icon-light mr-2.5 flex items-center justify-center rounded-md p-2 ${
+              copied ? 'text-blue-500' : 'text-white'
+            }`}
+            onClick={() => {
+              navigator.clipboard.writeText(video.video_url as string);
+              setCopied(true);
+              setTimeout(() => {
+                setCopied(false);
+              }, 2000);
+            }}
             title='Copy video url'
+            disabled={video.status === 'processing'}
           >
-            <i className='fas fa-copy text-white'></i>
+            {copied && (
+              <span className='absolute -top-[10px] text-xs text-blue-500'>
+                Copied!
+              </span>
+            )}
+            <i className='fas fa-copy'></i>
           </button>
           <button
             className='icon-light flex items-center justify-center rounded-md p-2'
@@ -209,7 +223,7 @@ const VideoCard = ({
           onClick={() => playVideo(video.video_url as string)}
         >
           <img
-            src={metadata.talking_photo.image_url}
+            src={video.talking_photo.image_url}
             alt='video poster'
             className='mx-auto h-full w-[70%] object-cover'
           />
@@ -230,10 +244,18 @@ const VideoCard = ({
           {video.status}
         </div>
       </div>
-      <div className='mx-auto flex max-w-[200px] flex-col items-center py-5'>
-        <p className='w-full truncate text-center text-base'>{video.id}</p>
-        <p className='w-full truncate text-center text-sm text-gray-500'>
-          {new Date(metadata.timestamp).toLocaleString()}
+      <div className='mx-auto flex flex-col items-center py-2.5'>
+        {video.status === 'processing' ? (
+          <p className='mb-2 text-center text-xs leading-tight text-gray-400'>
+            Video generation could take up to 3-5 minutes depending on your
+            internet strength.
+          </p>
+        ) : null}
+        <p className='max-w-[200px] truncate text-center text-base'>
+          {video.id}
+        </p>
+        <p className='max-w-[200px] truncate text-center text-sm text-gray-500'>
+          {new Date(video.timestamp).toLocaleString()}
         </p>
       </div>
     </div>

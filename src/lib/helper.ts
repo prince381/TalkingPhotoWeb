@@ -222,16 +222,14 @@ export async function queryStore(collection_name: string) {
   }
 }
 
-export async function purgeStorage(ref_name: string, fileList: string[]) {
-  if (fileList.length === 0) return;
+export async function removeFromStorage(ref_name: string, filename: string) {
+  if (!filename) return;
 
-  for (const file of fileList) {
-    const fileRef = ref(storage, `${ref_name}/${file}`);
-    try {
-      await deleteObject(fileRef);
-    } catch (error) {
-      console.log(file, 'does not exist..');
-    }
+  const fileRef = ref(storage, `${ref_name}/${filename}`);
+  try {
+    await deleteObject(fileRef);
+  } catch (error) {
+    console.log(filename, 'does not exist..');
   }
 }
 

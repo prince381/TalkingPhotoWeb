@@ -160,12 +160,21 @@ export default function GetStarted() {
         const _doc = doc(firestore, `TalkingPhotos/${video_id}`);
         await setDoc(_doc, {
           talking_photo: avatar,
+          status: 'processing',
           timestamp,
           video_id,
         });
         setLoading(false);
-        router.push('/gallery');
-        // console.log('Video uploaded successfully and will complete soon', response);
+        router.push(
+          {
+            pathname: '/gallery',
+            query: {
+              storageRef: 'generatedPodcasts',
+              file: `${talkingAvatar.id}.mp3`,
+            },
+          },
+          '/gallery'
+        );
       } else {
         setLoading(false);
         throw new Error('Something went wrong while saving data to firestore');
@@ -177,7 +186,7 @@ export default function GetStarted() {
   };
 
   const generateVideo = async () => {
-    if (!inputText && !talkingAvatar.id) return;
+    if (!inputText || inputText.length > 450 || !talkingAvatar.id) return;
     console.log(inputText, talkingAvatar);
     setLoading(true);
     try {
@@ -365,10 +374,21 @@ export default function GetStarted() {
                 <textarea
                   name='text_script'
                   id='textScript'
-                  className='sub-card mb-3 h-[15vh] max-h-[100px] w-full resize-none rounded-md border-none outline-none focus:border-none focus:outline-none md:max-h-[200px] lg:mb-5 lg:h-[180px]'
+                  className={`sub-card mb-1 h-[15vh] max-h-[100px] w-full resize-none rounded-md border-none focus:border-none md:max-h-[200px] lg:h-[180px] ${
+                    inputText.length > 450
+                      ? 'outline-1 outline-red-500 focus:outline-red-500'
+                      : 'outline-none focus:outline-none'
+                  }`}
                   placeholder='Type or paste a paragraph here...'
                   onChange={(e) => setInputText(e.target.value)}
                 ></textarea>
+                <p
+                  className={`mb-3 self-end text-sm lg:mb-5 ${
+                    inputText.length > 450 ? 'text-red-500' : 'text-gray-600'
+                  }`}
+                >
+                  {inputText.length} / 450 characters
+                </p>
                 <h2 className='mb-3 text-base'>Choose the speaker:</h2>
                 <div className='h-max w-full overflow-x-auto px-2 py-2.5'>
                   <div className='m-auto flex h-max w-max items-center lg:m-0 lg:justify-around'>
