@@ -3,7 +3,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable no-console */
-import { doc, DocumentData, setDoc } from 'firebase/firestore';
+import axios from 'axios';
+import { doc, DocumentData, onSnapshot, setDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -14,6 +15,7 @@ import { useQuery } from 'react-query';
 import {
   createVideo,
   fetchPhotos,
+  fetchVideoStatus,
   fetchVoices,
   getVoiceOver,
   queryStore,
@@ -55,6 +57,8 @@ export default function GetStarted() {
   const [vidOnPlay, setVidOnPlay] = useState('');
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [ips, setIps] = useState<string[]>([]);
+  const [userIp, setUserIp] = useState('');
 
   const premadeVideos = [
     {
@@ -82,6 +86,39 @@ export default function GetStarted() {
   );
 
   const { data: voices } = useQuery('voices', fetchVoices);
+
+  const getSavedIPs = () => {
+    const ipRef = doc(firestore, 'metadata', 'talkingphoto');
+    onSnapshot(ipRef, (snapshot) => {
+      const data = snapshot.data() as DocumentData;
+      setIps([...data.ip_addresses] as string[]);
+    });
+  };
+
+  useEffect(() => {
+    getSavedIPs();
+    (async () => {
+      // console.log(ips);
+      const ip = await axios.get('https://api.ipify.org');
+      setUserIp(ip.data);
+    })();
+  }, []);
+
+  // useEffect(() => {
+  //   (async () => {
+  //     if (ips.length > 0) {
+  //       // console.log(ips);
+  //       const ip = await axios.get('https://api.ipify.org');
+  //       setUserIp(ip.data)
+  //       if (!ips.includes(ip.data)) {
+  //         const ipRef = doc(firestore, 'metadata', 'talkingphoto');
+  //         await setDoc(ipRef, {
+  //           ip_addresses: [...ips, ip.data],
+  //         });
+  //       }
+  //     }
+  //   })();
+  // }, [ips]);
 
   useEffect(() => {
     if (photos && premade) {
@@ -164,6 +201,13 @@ export default function GetStarted() {
           timestamp,
           video_id,
         });
+        if (!ips.includes(userIp)) {
+          const ipRef = doc(firestore, 'metadata', 'talkingphoto');
+          await setDoc(ipRef, {
+            ip_addresses: [...ips, userIp],
+          });
+        }
+        fetchVideoStatus(video_id);
         setLoading(false);
         router.push(
           {
@@ -186,8 +230,12 @@ export default function GetStarted() {
   };
 
   const generateVideo = async () => {
-    if (!inputText || inputText.length > 450 || !talkingAvatar.id) return;
-    console.log(inputText, talkingAvatar);
+    console.log(ips, userIp);
+    if (ips.includes(userIp)) {
+      alert('You have reached your limit of one request per IP address!');
+      return;
+    }
+    // console.log(inputText, talkingAvatar);
     setLoading(true);
     try {
       const target = premade?.find((doc) => doc.id === talkingAvatar.id);
@@ -337,7 +385,7 @@ export default function GetStarted() {
             </div>
           </div>
           <div className='mt-8 flex h-max w-full flex-col items-center md:items-start lg:flex-row'>
-            <div className='mb-5 h-max w-full rounded-lg  bg-blue-500 py-3 px-4 shadow-sm md:py-5 md:px-8 lg:mb-0 lg:mr-4 lg:h-[580px] lg:w-[40%] lg:py-8'>
+            <div className='mb-5 h-max w-full rounded-lg  bg-blue-500 py-3 px-4 shadow-sm md:py-5 md:px-8 lg:mb-0 lg:mr-4 lg:h-[600px] lg:w-[40%] lg:py-8'>
               <div className='flex h-max w-full flex-col'>
                 <h2 className='mb-4 text-base text-white'>Want more?</h2>
                 <p className='text-gray-100'>
@@ -347,10 +395,10 @@ export default function GetStarted() {
                   voluptas adipisci ab ipsa accusamus natus quam rerum modi
                   provident, cupiditate dolorem.
                 </p>
-                <div className='relative mt-8 min-h-[270px] w-full overflow-hidden rounded-lg'>
+                <div className='relative mt-8 min-h-[270px] w-full overflow-hidden rounded-lg lg:min-h-[300px]'>
                   <video
                     src='https://firebasestorage.googleapis.com/v0/b/mochi-tales.appspot.com/o/premadeVideos%2FChamath%20telling%20jokes.mp4?alt=media&token=7f1d1439-2115-4177-97e7-9206614153e7'
-                    className='min-h-[270px] w-full object-cover'
+                    className='min-h-[270px] w-full object-cover lg:min-h-[300px]'
                     id='demo'
                     // onCanPlayThrough={() => {}}
                   ></video>
@@ -368,7 +416,7 @@ export default function GetStarted() {
                 </div>
               </div>
             </div>
-            <div className='card h-max w-full rounded-lg py-3 px-4 shadow-sm md:h-full md:py-5 md:px-8 lg:h-[580px] lg:w-[60%] lg:py-8'>
+            <div className='card h-max w-full rounded-lg py-3 px-4 shadow-sm md:h-full md:py-5 md:px-8 lg:h-[600px] lg:w-[60%] lg:py-8'>
               <div className='flex h-max w-full flex-col'>
                 <h2 className='mb-3 text-base'>Write the text:</h2>
                 <textarea
@@ -429,8 +477,15 @@ export default function GetStarted() {
                   </div>
                 </div>
                 <button
-                  className='rounded-5xl embed mt-6 flex w-full max-w-[300px] cursor-pointer items-center justify-center self-center bg-blue-500 py-5 px-10 text-white'
+                  className={`rounded-5xl embed mt-6 flex w-full max-w-[300px] cursor-pointer items-center justify-center self-center ${
+                    !inputText || inputText.length > 450 || !talkingAvatar.id
+                      ? 'cursor-not-allowed bg-gray-400'
+                      : 'cursor-pointer bg-blue-500'
+                  } py-5 px-10 text-white`}
                   onClick={generateVideo}
+                  disabled={
+                    !inputText || inputText.length > 450 || !talkingAvatar.id
+                  }
                 >
                   {loading ? (
                     <Loader loading={true} />

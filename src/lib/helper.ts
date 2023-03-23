@@ -40,12 +40,18 @@ export type VideoPayloadType = {
 export type VideoResponseType = {
   video_id: string;
   talking_photo_id: string;
+  talking_photo?: {
+    circle_image: string;
+    id: string;
+    image_url: string;
+  };
   voice_id: string;
   id?: string;
   timestamp?: Date;
   error?: Error;
   status?: 'processing' | 'completed' | 'failed';
   video_url?: string;
+  watermarked_url?: string;
 };
 
 export type VideoMetaData = {
@@ -195,15 +201,32 @@ export async function createVideo(
 export async function fetchVideoStatus(id: string) {
   const url = process.env.NEXT_PUBLIC_SERVER as string;
   try {
-    const {
-      data: { data: response },
-    } = await axios.get(`${url}/talking_photo/get_video/${id}`);
+    console.log('fetching video status', id);
+    const { data: response } = await axios.get(
+      `${url}/talking_photo/get_video/${id}`
+    );
     return response;
   } catch (error) {
     console.log(error, id);
     return null;
   }
 }
+
+// export async function addVideoWaterMark(video_url: string, length: number) {
+//   const url = process.env.NEXT_PUBLIC_SERVER as string;
+// try {
+//   const {
+//     data: { data: response },
+//   } = await axios.post(`${url}/talking_photo/watermark`, {
+//     video_url,
+//     length,
+//   });
+//   return response;
+// } catch (error) {
+//   console.log(error);
+//   throw error;
+// }
+// }
 
 export async function queryStore(collection_name: string) {
   const ref = collection(firestore, collection_name);

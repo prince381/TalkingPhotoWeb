@@ -1,49 +1,38 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-console */
+import { collection, onSnapshot } from 'firebase/firestore';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
-import { useQuery } from 'react-query';
 
 import {
   deleteDocument,
-  fetchVideoStatus,
-  queryStore,
   removeFromStorage,
-  VideoMetaData,
   VideoResponseType,
 } from '@/lib/helper';
 
 import Loader from '@/components/Loader';
 
+import { firestore } from '../../../firebase/firebase';
+
 export default function Gallery() {
   const router = useRouter();
-  const [videos, setVideos] = useState<(VideoResponseType & VideoMetaData)[]>(
-    []
-  );
+  const [videos, setVideos] = useState<VideoResponseType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
   const [videoOnPlay, setVideoOnPlay] = useState(false);
 
-  const getSavedVideos = async () => {
-    try {
-      const data = await queryStore('TalkingPhotos');
-      return data;
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
+  const getSavedVideos = () => {
+    const collectionRef = collection(firestore, 'TalkingPhotos');
+    onSnapshot(collectionRef, (snapshot) => {
+      const data = snapshot.docs.map((doc) => {
+        const docData = doc.data();
+        const id = doc.id;
+        return { id, ...docData };
+      });
+      setVideos(data as VideoResponseType[]);
+    });
   };
-
-  const {
-    data: videoMetaData,
-    isError,
-    error,
-  } = useQuery('metadata', getSavedVideos);
-
-  if (isError) {
-    console.log(error);
-    setLoading(false);
-  }
 
   const playCurrentVideo = (src: string) => {
     const video = document.getElementById('vidonplay') as HTMLVideoElement;
@@ -54,8 +43,6 @@ export default function Gallery() {
 
   const removeVideo = async (id: string) => {
     try {
-      const filteredVideos = videos.filter((vid) => vid.id !== id);
-      setVideos(filteredVideos);
       await deleteDocument('TalkingPhotos', id);
     } catch (error) {
       console.log('Something went wrong while deleting video:', error);
@@ -75,25 +62,35 @@ export default function Gallery() {
   };
 
   useEffect(() => {
+    getSavedVideos();
+  }, []);
+
+  useEffect(() => {
     (async () => {
-      if (videoMetaData && videoMetaData.length > 0) {
-        const videoTasks = videoMetaData.map(async (video) => {
-          const status = await fetchVideoStatus(video.video_id);
-          const data = { ...video, ...status };
-          // console.log(data);
-          return data;
-        });
-        const videoData = await Promise.all(videoTasks);
-        const availableVideos = videoData.filter((vid) => vid !== null);
-        setVideos(availableVideos);
-        setTimeout(() => setLoading(false), 3000);
-      } else setLoading(false);
+      try {
+        if (videos && videos.length > 0) {
+          const processedVideos = videos.filter(
+            (video) => video.video_url && !video.watermarked_url
+          );
+          if (processedVideos.length > 0) {
+            const tasks = processedVideos.map(async (video) => {
+              // return await fetchVideoStatus(video.video_id);
+              return video;
+            });
+            await Promise.all(tasks);
+          }
+        }
+      } catch (error) {
+        console.log('Something went wrong while fetching video status:', error);
+        setIsError(true);
+      }
     })();
-  }, [videoMetaData]);
+  }, [videos]);
 
   useEffect(() => {
     console.log(videos);
-  }, [videos]);
+    if (videos.length > 0 || isError) setLoading(false);
+  }, [videos, isError]);
 
   // Remove the temporary saved audio file from storage
   useEffect(() => {
@@ -135,20 +132,22 @@ export default function Gallery() {
               ></video>
             </div>
           </div>
-          {loading && videos.length === 0 ? (
+          {loading ? (
             <div className='body-embed flex min-h-[70vh] w-full items-center justify-center'>
               <Loader loading={loading} />
             </div>
-          ) : !loading && videos.length === 0 ? (
+          ) : null}
+          {videos.length === 0 && !loading ? (
             <div className='flex min-h-[70vh] w-full flex-col items-center justify-center'>
               <i className='fas fa-folder-open text-5xl text-gray-300'></i>
               <p className='mt-3 text-center text-base'>
                 You have no videos now! Videos you create will appear here.
               </p>
             </div>
-          ) : (
+          ) : null}
+          {videos.length > 0 && !loading ? (
             <div className='mt-8 grid h-max w-full grid-cols-1 gap-5 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-8'>
-              {videos.map((video: VideoResponseType & VideoMetaData) => {
+              {videos.map((video: VideoResponseType) => {
                 return (
                   <VideoCard
                     video={video}
@@ -159,7 +158,7 @@ export default function Gallery() {
                 );
               })}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </>
@@ -171,7 +170,7 @@ const VideoCard = ({
   playVideo,
   removeVideo,
 }: {
-  video: VideoResponseType & VideoMetaData;
+  video: VideoResponseType;
   playVideo: (src: string) => void;
   removeVideo: (id: string) => void;
 }) => {
@@ -223,7 +222,7 @@ const VideoCard = ({
           onClick={() => playVideo(video.video_url as string)}
         >
           <img
-            src={video.talking_photo.image_url}
+            src={video.talking_photo?.image_url}
             alt='video poster'
             className='mx-auto h-full w-[70%] object-cover'
           />
@@ -255,7 +254,7 @@ const VideoCard = ({
           {video.id}
         </p>
         <p className='max-w-[200px] truncate text-center text-sm text-gray-500'>
-          {new Date(video.timestamp).toLocaleString()}
+          {new Date(video.timestamp as Date).toLocaleString()}
         </p>
       </div>
     </div>
