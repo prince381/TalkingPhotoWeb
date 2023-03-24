@@ -15,7 +15,6 @@ import { useQuery } from 'react-query';
 import {
   createVideo,
   fetchPhotos,
-  fetchVideoStatus,
   fetchVoices,
   getVoiceOver,
   queryStore,
@@ -182,7 +181,7 @@ export default function GetStarted() {
         },
       ],
       ratio: '16:9',
-      test: true,
+      test: false,
       version: 'v1alpha',
     };
 
@@ -207,7 +206,7 @@ export default function GetStarted() {
             ip_addresses: [...ips, userIp],
           });
         }
-        fetchVideoStatus(video_id);
+        // fetchVideoStatus(video_id);
         setLoading(false);
         router.push(
           {

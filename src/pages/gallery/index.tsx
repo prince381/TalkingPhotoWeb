@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 
 import {
   deleteDocument,
+  fetchVideoStatus,
   removeFromStorage,
   VideoResponseType,
 } from '@/lib/helper';
@@ -69,13 +70,13 @@ export default function Gallery() {
     (async () => {
       try {
         if (videos && videos.length > 0) {
-          const processedVideos = videos.filter(
-            (video) => video.video_url && !video.watermarked_url
+          const unprocessedVideos = videos.filter(
+            (video) => video.status === 'processing'
           );
-          if (processedVideos.length > 0) {
-            const tasks = processedVideos.map(async (video) => {
-              // return await fetchVideoStatus(video.video_id);
-              return video;
+          if (unprocessedVideos.length > 0) {
+            const tasks = unprocessedVideos.map(async (video) => {
+              return await fetchVideoStatus(video.video_id);
+              // return video;
             });
             await Promise.all(tasks);
           }
@@ -246,8 +247,8 @@ const VideoCard = ({
       <div className='mx-auto flex flex-col items-center py-2.5'>
         {video.status === 'processing' ? (
           <p className='mb-2 text-center text-xs leading-tight text-gray-400'>
-            Video generation could take up to 3-5 minutes depending on your
-            internet strength.
+            Video generation could take 3-5 minutes depending on your internet
+            strength.
           </p>
         ) : null}
         <p className='max-w-[200px] truncate text-center text-base'>
