@@ -319,8 +319,8 @@ export default function GetStarted() {
               <h2 className='sub-card mb-3 inline-block self-start whitespace-nowrap rounded-3xl py-1.5 px-5 text-sm lg:mb-5 lg:text-base'>
                 Pick the bestie
               </h2>
-              <div className='h-max w-full overflow-x-auto px-2 py-2.5 xs:mr-2.5 xs:w-max xs:overflow-x-hidden'>
-                <div className='m-auto flex h-max w-max items-center xs:h-full xs:items-start md:grid md:grid-cols-1 md:flex-col lg:m-0'>
+              <div className='h-max w-full overflow-x-auto px-2 py-2.5 xs:mr-2.5 xs:w-max'>
+                <div className='m-auto flex h-max w-max items-center xs:h-full xs:items-start md:grid md:grid-cols-1 md:flex-col lg:m-0  lg:overflow-x-visible'>
                   {photos
                     ? photos
                         .filter(
@@ -332,11 +332,19 @@ export default function GetStarted() {
                             className='mr-4 mb-2 flex flex-col-reverse items-center last:mr-0 sm:mr-6 sm:last:mr-0 md:mr-0 md:items-start lg:flex-row lg:items-center lg:justify-end lg:last:mb-0'
                             key={photo.id}
                           >
-                            <p className='text-xxs mt-1 hidden max-w-[150px] xxs:inline-block md:hidden lg:inline-block lg:text-sm'>
+                            <p
+                              className={`text-xxs mt-1 hidden max-w-[150px] xxs:inline-block md:hidden lg:inline-block lg:text-sm ${
+                                selectedAvatar.id === photo.id &&
+                                'text-blue-500'
+                              }`}
+                            >
                               {getName(photo.id)}
                             </p>
                             <div
-                              className='cursor-pointer rounded-full border-2 border-blue-500 bg-gray-300 lg:ml-5'
+                              className={`cursor-pointer rounded-full border-2  bg-gray-300 lg:ml-5 ${
+                                selectedAvatar.id === photo.id &&
+                                'border-blue-500'
+                              }`}
                               title={getName(photo.id)}
                               onClick={() => {
                                 setSelectedAvatar(photo);
@@ -413,7 +421,9 @@ export default function GetStarted() {
                           key={vid.id}
                         >
                           <div
-                            className='cursor-pointer rounded-full border-2 border-blue-500 bg-gray-300 md:mr-3 lg:mr-6'
+                            className={`cursor-pointer rounded-full border-2 border-blue-500 bg-gray-300 md:mr-3 lg:mr-6 ${
+                              videoName === vid.id && 'current-song'
+                            }`}
                             onClick={() => {
                               setVideoName(vid.id);
                               setVidOnPlay('');
@@ -432,7 +442,11 @@ export default function GetStarted() {
                               priority
                             />
                           </div>
-                          <p className='text-xxs mt-1 max-w-[80px] text-center xxs:max-w-[120px] md:text-left lg:text-sm'>
+                          <p
+                            className={`text-xxs mt-1 max-w-[80px] text-center xxs:max-w-[120px] md:text-left lg:text-sm ${
+                              videoName === vid.id ? 'text-blue-500' : ''
+                            }`}
+                          >
                             <span className='block text-sm font-bold'>
                               {vid.artiste}
                             </span>
