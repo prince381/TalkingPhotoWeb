@@ -6,7 +6,7 @@ export default function Switch({
   toggle: (value: boolean) => void;
 }) {
   return (
-    <div className='switch h-max w-max'>
+    <div className='switch h-max w-max lg:justify-self-end'>
       <input
         type='checkbox'
         id='theme-toggle'

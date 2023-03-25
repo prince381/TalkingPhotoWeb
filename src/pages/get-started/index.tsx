@@ -8,7 +8,6 @@ import { doc, DocumentData, onSnapshot, setDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import banner from 'public/images/music-banner.jpg';
 import React, { useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 
@@ -21,7 +20,7 @@ import {
   VideoPayloadType,
 } from '@/lib/helper';
 
-import Loader from '@/components/Loader';
+import LoadingScreen from '@/components/LoadingScreen';
 
 import { firestore, storage } from '../../../firebase/firebase';
 
@@ -54,10 +53,22 @@ export default function GetStarted() {
   const [inputText, setInputText] = useState('');
   const [videoName, setVideoName] = useState('');
   const [vidOnPlay, setVidOnPlay] = useState('');
+  const [appState, setAppState] = useState('init');
+  const [videoTitle, setVideoTitle] = useState('');
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [ips, setIps] = useState<string[]>([]);
   const [userIp, setUserIp] = useState('');
+
+  const scriptRef = React.useRef<HTMLTextAreaElement>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const savedPhotoIds = [
+    '5ffc20fde7324504849c373bdffc410b',
+    'dd93b8bf5935467facd99de7f4d34bcb',
+    'e145c2ebc7cb441cb6523108de1244df',
+    'e5b732284e6a48ca89a6c384f73bf7b8',
+  ];
 
   const premadeVideos = [
     {
@@ -97,31 +108,18 @@ export default function GetStarted() {
   useEffect(() => {
     getSavedIPs();
     (async () => {
-      // console.log(ips);
-      const ip = await axios.get('https://api.ipify.org');
-      setUserIp(ip.data);
+      try {
+        const ip = await axios.get('https://api.ipify.org');
+        setUserIp(ip.data);
+      } catch (error) {
+        console.log(error);
+      }
     })();
   }, []);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     if (ips.length > 0) {
-  //       // console.log(ips);
-  //       const ip = await axios.get('https://api.ipify.org');
-  //       setUserIp(ip.data)
-  //       if (!ips.includes(ip.data)) {
-  //         const ipRef = doc(firestore, 'metadata', 'talkingphoto');
-  //         await setDoc(ipRef, {
-  //           ip_addresses: [...ips, ip.data],
-  //         });
-  //       }
-  //     }
-  //   })();
-  // }, [ips]);
-
   useEffect(() => {
     if (photos && premade) {
-      // console.log(premade, photos);
+      console.log(premade, photos);
       const avatars = photos.filter((photo: Photo) => !photo.is_preset);
       if (selectedAvatar.id && videoName) return;
       setSelectedAvatar(avatars[0]);
@@ -168,8 +166,8 @@ export default function GetStarted() {
     });
   };
 
-  const sendVideo = async (avatar_id: string, audio: string) => {
-    if (!avatar_id || !audio) return;
+  const sendVideo = async (avatar_id: string, audio: string, title: string) => {
+    if (!avatar_id || !audio || !title) return;
     const payload: VideoPayloadType = {
       background: '#000000',
       clips: [
@@ -199,15 +197,16 @@ export default function GetStarted() {
           status: 'processing',
           timestamp,
           video_id,
+          title,
         });
-        if (!ips.includes(userIp)) {
-          const ipRef = doc(firestore, 'metadata', 'talkingphoto');
-          await setDoc(ipRef, {
-            ip_addresses: [...ips, userIp],
-          });
-        }
-        // fetchVideoStatus(video_id);
-        setLoading(false);
+
+        // if (!ips.includes(userIp)) {
+        //   const ipRef = doc(firestore, 'metadata', 'talkingphoto');
+        //   await setDoc(ipRef, {
+        //     ip_addresses: [...ips, userIp],
+        //   });
+        // }
+
         router.push(
           {
             pathname: '/gallery',
@@ -229,12 +228,19 @@ export default function GetStarted() {
   };
 
   const generateVideo = async () => {
-    console.log(ips, userIp);
+    // console.log(ips, userIp);
     if (ips.includes(userIp)) {
       alert('You have reached your limit of one request per IP address!');
       return;
     }
-    // console.log(inputText, talkingAvatar);
+
+    const title = inputRef.current?.value;
+    if (!title) {
+      (inputRef.current as HTMLInputElement).focus();
+      return;
+    }
+
+    setAppState('init');
     setLoading(true);
     try {
       const target = premade?.find((doc) => doc.id === talkingAvatar.id);
@@ -251,7 +257,7 @@ export default function GetStarted() {
         );
         await uploadBytes(audioRef, voiceBlob);
         const audioUrl = await getDownloadURL(audioRef);
-        await sendVideo(talkingAvatar.id, audioUrl);
+        await sendVideo(talkingAvatar.id, audioUrl, title);
       } else {
         setLoading(false);
       }
@@ -262,24 +268,75 @@ export default function GetStarted() {
     }
   };
 
+  const closeModal = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    const modalContent = document.getElementById(
+      'modal-content'
+    ) as HTMLDivElement;
+    if (!modalContent.contains(target)) {
+      setAppState('init');
+    }
+  };
+
   return (
     <>
-      {/* <LoadingScreen loading={loadingPhotos && loadingPremade} /> */}
+      <LoadingScreen loading={loading} />
+      {appState === 'generating' && (
+        <div
+          id='modal'
+          className='fixed left-0 top-0 z-[500] flex h-screen w-screen items-center justify-center backdrop-blur-sm'
+          onClick={closeModal}
+        >
+          <button className='z-1 absolute top-8 right-8 flex h-8 w-8 items-center justify-center rounded-full border-2 border-black lg:h-10 lg:w-10'>
+            <i className='fas fa-times text-xl text-black'></i>
+          </button>
+          <div
+            id='modal-content'
+            className='modal-card flex h-max w-[90%] max-w-[700px] flex-col items-center rounded-lg p-5 shadow-md lg:py-8 lg:px-12'
+          >
+            <h2 className='text-lg font-bold md:self-start lg:text-xl xxl:text-2xl'>
+              What should we title your video?
+            </h2>
+            <input
+              ref={inputRef}
+              type='text'
+              className='sub-card my-6 w-full rounded-lg border-none py-3 outline-none'
+              required
+            />
+            <button
+              className='rounded-5xl w-full max-w-[300px] bg-blue-500 py-4 px-10 text-white'
+              onClick={generateVideo}
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      )}
       <div className='mx-auto h-max w-[95%] max-w-[1200px] py-10'>
         <div className='flex h-max w-full flex-col items-center'>
-          <div className='card flex h-max w-full flex-col items-center rounded-lg px-2.5 py-4 shadow-sm xs:px-4 md:flex-row lg:px-10 lg:py-6 xl:py-10'>
-            <div className='h-full w-full md:h-fit md:w-[60%]'>
-              <h2 className='mb-3 text-base lg:mb-5'>Choose the speaker:</h2>
-              <div className='grid grid-cols-1 gap-2 xs:flex xs:gap-0'>
-                <div className='h-max w-full overflow-x-auto px-2 py-2.5 xs:mr-2.5 xs:w-max xs:overflow-x-hidden'>
-                  <div className='m-auto flex h-max w-max items-center xs:h-full xs:flex-col xs:items-start lg:m-0'>
-                    {photos
-                      ? photos
-                          .filter((photo: Photo) => !photo.is_preset)
-                          .map((photo: Photo, index: number) => (
+          <div className='card flex h-max w-full flex-col items-center rounded-lg px-2.5 py-4 shadow-sm xs:px-4 md:flex-row lg:py-6 xl:py-10'>
+            <div className='flex h-full w-full flex-col items-center md:h-fit md:w-max'>
+              <h2 className='sub-card mb-3 inline-block self-start whitespace-nowrap rounded-3xl py-1.5 px-5 text-sm lg:mb-5 lg:text-base'>
+                Pick the bestie
+              </h2>
+              <div className='h-max w-full overflow-x-auto px-2 py-2.5 xs:mr-2.5 xs:w-max xs:overflow-x-hidden'>
+                <div className='m-auto flex h-max w-max items-center xs:h-full xs:items-start md:grid md:grid-cols-1 md:flex-col lg:m-0'>
+                  {photos
+                    ? photos
+                        .filter(
+                          (photo: Photo) =>
+                            !photo.is_preset && savedPhotoIds.includes(photo.id)
+                        )
+                        .map((photo: Photo, index: number) => (
+                          <div
+                            className='mr-4 mb-2 flex flex-col-reverse items-center last:mr-0 sm:mr-6 sm:last:mr-0 md:mr-0 md:items-start lg:flex-row lg:items-center lg:justify-end lg:last:mb-0'
+                            key={photo.id}
+                          >
+                            <p className='text-xxs mt-1 hidden max-w-[150px] xxs:inline-block md:hidden lg:inline-block lg:text-sm'>
+                              {getName(photo.id)}
+                            </p>
                             <div
-                              className='mr-4 mb-4 cursor-pointer rounded-full bg-gray-300 outline outline-4 outline-blue-900 last:mr-0 lg:last:mb-0'
-                              key={photo.id}
+                              className='cursor-pointer rounded-full border-2 border-blue-500 bg-gray-300 lg:ml-5'
                               title={getName(photo.id)}
                               onClick={() => {
                                 setSelectedAvatar(photo);
@@ -297,53 +354,104 @@ export default function GetStarted() {
                                 }`}
                               />
                             </div>
-                          ))
-                      : [0, 1, 2, 3].map((num: number) => (
-                          <div
-                            key={num}
-                            className='skeleton-load mr-2.5 mb-2 max-h-[60px] min-h-[60px] min-w-[60px] max-w-[60px] rounded-full last:mr-0'
-                          ></div>
-                        ))}
-                  </div>
-                </div>
-                <div
-                  className={`relative h-full max-h-[300px] min-h-[300px] w-full max-w-[530px] lg:max-h-[310px] ${
-                    videoPreview && videoPreview[videoName] && videoLoaded
-                      ? 'border-2 border-blue-400'
-                      : ''
-                  } overflow-hidden rounded-lg transition-all`}
-                >
-                  {videoPreview && videoPreview[videoName] ? (
-                    <video
-                      src={videoPreview[videoName]}
-                      id='premade-vid'
-                      className='h-full max-h-[300px] min-h-[300px] w-full max-w-[530px] object-cover lg:max-h-[310px]'
-                      onCanPlayThrough={() => {
-                        console.log('video loaded ....');
-                        setVideoLoaded(true);
-                      }}
-                    ></video>
-                  ) : (
-                    <div className='skeleton-load z-1 absolute left-0 top-0 h-full w-full lg:max-h-[310px]'></div>
-                  )}
-                  {!videoLoaded ? (
-                    <div className='skeleton-load z-1 absolute left-0 top-0 h-full w-full lg:max-h-[310px]'></div>
-                  ) : null}
-                  {vidOnPlay !== 'premade-vid' ? (
-                    <i
-                      className='fas fa-play z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
-                      onClick={() => playCurrentVideo('premade-vid')}
-                    ></i>
-                  ) : (
-                    <i
-                      className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
-                      onClick={() => playCurrentVideo('premade-vid')}
-                    ></i>
-                  )}
+                          </div>
+                        ))
+                    : [0, 1, 2, 3].map((num: number) => (
+                        <div
+                          key={num}
+                          className='skeleton-load mr-2.5 mb-2 max-h-[60px] min-h-[60px] min-w-[60px] max-w-[60px] rounded-full last:mr-0'
+                        ></div>
+                      ))}
                 </div>
               </div>
             </div>
-            <div className='mt-5 h-max w-full md:mt-0 md:ml-3 md:w-[40%]'>
+            <div
+              className={`relative mx-5 mb-7 h-full max-h-[300px] min-h-[300px] w-full max-w-[600px] md:mb-0 md:max-h-full ${
+                videoPreview && videoPreview[videoName] && videoLoaded
+                  ? 'border-2 border-blue-400'
+                  : ''
+              } overflow-hidden rounded-lg transition-all`}
+            >
+              {videoPreview && videoPreview[videoName] ? (
+                <video
+                  src={videoPreview[videoName]}
+                  id='premade-vid'
+                  className='h-full max-h-[300px] min-h-[300px] w-full max-w-[600px] object-cover md:max-h-full'
+                  onCanPlayThrough={() => {
+                    console.log('video loaded ....');
+                    setVideoLoaded(true);
+                  }}
+                ></video>
+              ) : (
+                <div className='skeleton-load z-1 absolute left-0 top-0 h-full w-full md:max-h-full'></div>
+              )}
+              {!videoLoaded ? (
+                <div className='skeleton-load z-1 absolute left-0 top-0 h-full w-full md:max-h-full'></div>
+              ) : null}
+              {vidOnPlay !== 'premade-vid' ? (
+                <i
+                  className='fas fa-play z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
+                  onClick={() => playCurrentVideo('premade-vid')}
+                ></i>
+              ) : (
+                <i
+                  className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
+                  onClick={() => playCurrentVideo('premade-vid')}
+                ></i>
+              )}
+            </div>
+            <div className='flex h-full w-full flex-col items-center md:h-fit md:w-max'>
+              <h2 className='sub-card mb-3 inline-block self-start whitespace-nowrap rounded-3xl py-1.5 px-5 text-sm lg:mb-5 lg:text-base'>
+                Choose the song
+              </h2>
+              <div className='h-max w-full overflow-x-auto px-2 py-2.5 xs:w-max xs:overflow-x-hidden'>
+                <div className='m-auto flex h-max w-max items-start xs:h-full xs:items-start md:grid md:grid-cols-1 md:flex-col lg:m-0'>
+                  {photos && premade
+                    ? premadeVideos.map((vid) => (
+                        <div
+                          className='mr-4 mb-2 flex flex-col items-center last:mr-0 sm:mr-6 sm:last:mr-0 md:mr-0 md:flex-row md:justify-start lg:last:mb-0'
+                          key={vid.id}
+                        >
+                          <div
+                            className='cursor-pointer rounded-full border-2 border-blue-500 bg-gray-300 md:mr-3 lg:mr-6'
+                            onClick={() => {
+                              setVideoName(vid.id);
+                              setVidOnPlay('');
+                            }}
+                          >
+                            <Image
+                              src='/images/music-banner.jpg'
+                              alt='avatar photo'
+                              width={60}
+                              height={60}
+                              className={`max-h-[60px] min-h-[60px] min-w-[60px] max-w-[60px] rounded-full ${
+                                videoName === vid.id
+                                  ? 'grayscale-0'
+                                  : 'grayscale'
+                              }`}
+                              priority
+                            />
+                          </div>
+                          <p className='text-xxs mt-1 max-w-[80px] text-center xxs:max-w-[120px] md:text-left lg:text-sm'>
+                            <span className='block text-sm font-bold'>
+                              {vid.artiste}
+                            </span>
+                            <span className='hidden text-sm xs:block'>
+                              {vid.title}
+                            </span>
+                          </p>
+                        </div>
+                      ))
+                    : [0, 1, 2, 3].map((num: number) => (
+                        <div
+                          key={num}
+                          className='skeleton-load mr-2.5 mb-2 max-h-[60px] min-h-[60px] min-w-[60px] max-w-[60px] rounded-full last:mr-0'
+                        ></div>
+                      ))}
+                </div>
+              </div>
+            </div>
+            {/* <div className='mt-5 h-max w-full md:mt-0 md:ml-3 md:w-[40%]'>
               <h2 className='mb-3 text-base'>Choose the music:</h2>
               <div className='grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-2'>
                 {photos && premade
@@ -381,7 +489,7 @@ export default function GetStarted() {
                       ></div>
                     ))}
               </div>
-            </div>
+            </div> */}
           </div>
           <div className='mt-8 flex h-max w-full flex-col items-center md:items-start lg:flex-row'>
             <div className='mb-5 h-max w-full rounded-lg  bg-blue-500 py-3 px-4 shadow-sm md:py-5 md:px-8 lg:mb-0 lg:mr-4 lg:h-[600px] lg:w-[40%] lg:py-8'>
@@ -421,13 +529,16 @@ export default function GetStarted() {
                 <textarea
                   name='text_script'
                   id='textScript'
-                  className={`sub-card mb-1 h-[15vh] max-h-[100px] w-full resize-none rounded-md border-none focus:border-none md:max-h-[200px] lg:h-[180px] ${
-                    inputText.length > 450
-                      ? 'outline-1 outline-red-500 focus:outline-red-500'
-                      : 'outline-none focus:outline-none'
-                  }`}
+                  className='sub-card mb-1 h-[15vh] max-h-[100px] w-full resize-none rounded-md border-none outline-none focus:border-none focus:outline-none md:max-h-[200px] lg:h-[180px]'
                   placeholder='Type or paste a paragraph here...'
-                  onChange={(e) => setInputText(e.target.value)}
+                  ref={scriptRef}
+                  value={inputText}
+                  onInput={() => {
+                    const text = scriptRef.current?.value;
+                    if (text && text.length > 450)
+                      setInputText(text.slice(0, 450));
+                    else setInputText(text || '');
+                  }}
                 ></textarea>
                 <p
                   className={`mb-3 self-end text-sm lg:mb-5 ${
@@ -441,11 +552,15 @@ export default function GetStarted() {
                   <div className='m-auto flex h-max w-max items-center lg:m-0 lg:justify-around'>
                     {photos
                       ? photos
-                          .filter((photo: Photo) => !photo.is_preset)
+                          .filter(
+                            (photo: Photo) =>
+                              !photo.is_preset &&
+                              savedPhotoIds.includes(photo.id)
+                          )
                           .map((photo: Photo) => (
                             <div
                               key={photo.id}
-                              className='mr-3 flex flex-col items-center lg:mr-4'
+                              className='mr-1 flex flex-col items-center lg:mr-4'
                             >
                               <div
                                 className={`mb-2 cursor-pointer rounded-full bg-gray-300 ${
@@ -477,20 +592,17 @@ export default function GetStarted() {
                 </div>
                 <button
                   className={`rounded-5xl embed mt-6 flex w-full max-w-[300px] cursor-pointer items-center justify-center self-center ${
-                    !inputText || inputText.length > 450 || !talkingAvatar.id
+                    !inputText || !talkingAvatar.id
                       ? 'cursor-not-allowed bg-gray-400'
                       : 'cursor-pointer bg-blue-500'
                   } py-5 px-10 text-white`}
-                  onClick={generateVideo}
-                  disabled={
-                    !inputText || inputText.length > 450 || !talkingAvatar.id
-                  }
+                  onClick={() => {
+                    if (inputText && talkingAvatar.id)
+                      setAppState('generating');
+                  }}
+                  disabled={!inputText || !talkingAvatar.id}
                 >
-                  {loading ? (
-                    <Loader loading={true} />
-                  ) : (
-                    <span>Generate the video</span>
-                  )}
+                  <span>Generate the video</span>
                 </button>
               </div>
             </div>
