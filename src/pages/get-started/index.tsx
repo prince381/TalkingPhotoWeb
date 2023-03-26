@@ -148,6 +148,15 @@ export default function GetStarted() {
     } else return 'Avatar Name';
   };
 
+  const formatDate = (date: Date) => {
+    const d = new Date(date);
+    let dStr = d.toLocaleString();
+    dStr = dStr.replaceAll('/', '.');
+    dStr = dStr.replaceAll(', ', '_');
+    dStr = dStr.replaceAll(':', '_');
+    return dStr;
+  };
+
   const playCurrentVideo = (id: string) => {
     const videoFiles = document.querySelectorAll('video');
     videoFiles.forEach((video) => {
@@ -229,10 +238,10 @@ export default function GetStarted() {
 
   const generateVideo = async () => {
     // console.log(ips, userIp);
-    if (ips.includes(userIp)) {
-      alert('You have reached your limit of one request per IP address!');
-      return;
-    }
+    // if (ips.includes(userIp)) {
+    //   alert('You have reached your limit of one request per IP address!');
+    //   return;
+    // }
 
     const title = inputRef.current?.value;
     if (!title) {
@@ -299,8 +308,14 @@ export default function GetStarted() {
             </h2>
             <input
               ref={inputRef}
+              value={videoTitle}
               type='text'
               className='sub-card my-6 w-full rounded-lg border-none py-3 outline-none'
+              onChange={() => {
+                setVideoTitle(inputRef.current?.value || '');
+              }}
+              autoFocus
+              onFocus={(e) => e.target.select()}
               required
             />
             <button
@@ -465,45 +480,6 @@ export default function GetStarted() {
                 </div>
               </div>
             </div>
-            {/* <div className='mt-5 h-max w-full md:mt-0 md:ml-3 md:w-[40%]'>
-              <h2 className='mb-3 text-base'>Choose the music:</h2>
-              <div className='grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-2'>
-                {photos && premade
-                  ? premadeVideos.map((vid) => (
-                      <div
-                        className={`relative flex max-h-[150px] flex-col p-1 ${
-                          videoName === vid.id
-                            ? 'card-selected bg-blue-500'
-                            : 'sub-card'
-                        } group cursor-pointer rounded-lg shadow-sm`}
-                        key={vid.id}
-                        onClick={() => {
-                          setVideoName(vid.id);
-                          setVidOnPlay('');
-                        }}
-                      >
-                        <div className='h-[50%] max-h-[70px] w-full overflow-hidden rounded-t-lg lg:max-h-[130px]'>
-                          <Image
-                            src={banner}
-                            alt='music banner'
-                            className='h-full max-h-[100px] w-full bg-top object-cover transition-all duration-200 group-hover:scale-110 lg:max-h-[130px]'
-                            priority
-                          />
-                        </div>
-                        <div className='p-2'>
-                          <p className='text-sm'>{vid.artiste}</p>
-                          <h4 className='truncate text-sm'>{vid.title}</h4>
-                        </div>
-                      </div>
-                    ))
-                  : [0, 1, 2, 3].map((num: number) => (
-                      <div
-                        key={num}
-                        className='skeleton-load h-full min-h-[130px] w-full min-w-[140px] rounded-lg'
-                      ></div>
-                    ))}
-              </div>
-            </div> */}
           </div>
           <div className='mt-8 flex h-max w-full flex-col items-center md:items-start lg:flex-row'>
             <div className='mb-5 h-max w-full rounded-lg  bg-blue-500 py-3 px-4 shadow-sm md:py-5 md:px-8 lg:mb-0 lg:mr-4 lg:h-[600px] lg:w-[40%] lg:py-8'>
@@ -539,7 +515,7 @@ export default function GetStarted() {
             </div>
             <div className='card h-max w-full rounded-lg py-3 px-4 shadow-sm md:h-full md:py-5 md:px-8 lg:h-[600px] lg:w-[60%] lg:py-8'>
               <div className='flex h-max w-full flex-col'>
-                <h2 className='mb-3 text-base'>Write the text:</h2>
+                <h2 className='mb-3 text-base'>Try it yourself:</h2>
                 <textarea
                   name='text_script'
                   id='textScript'
@@ -561,7 +537,7 @@ export default function GetStarted() {
                 >
                   {inputText.length} / 450 characters
                 </p>
-                <h2 className='mb-3 text-base'>Choose the speaker:</h2>
+                <h2 className='mb-3 text-base'>Pick the bestie:</h2>
                 <div className='h-max w-full overflow-x-auto px-2 py-2.5'>
                   <div className='m-auto flex h-max w-max items-center lg:m-0 lg:justify-around'>
                     {photos
@@ -583,7 +559,13 @@ export default function GetStarted() {
                                     : 'grayscale'
                                 }`}
                                 title={getName(photo.id)}
-                                onClick={() => setTalkingAvatar(photo)}
+                                onClick={() => {
+                                  setTalkingAvatar(photo);
+                                  const defaultText = `${getName(
+                                    photo.id
+                                  )}_${formatDate(new Date())}`;
+                                  setVideoTitle(defaultText);
+                                }}
                               >
                                 <img
                                   src={photo.circle_image}

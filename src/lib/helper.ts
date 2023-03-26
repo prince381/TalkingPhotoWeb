@@ -52,6 +52,7 @@ export type VideoResponseType = {
   status?: 'processing' | 'completed' | 'failed';
   video_url?: string;
   watermarked_url?: string;
+  title?: string;
 };
 
 export type VideoMetaData = {

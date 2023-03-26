@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-console */
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
@@ -23,9 +25,15 @@ export default function Gallery() {
   const [isError, setIsError] = useState(false);
   const [videoOnPlay, setVideoOnPlay] = useState(false);
   const [showVideos, setShowVideos] = useState(false);
+  const [currentVideo, setCurrentVideo] = useState<VideoResponseType | null>(
+    null
+  );
 
   const getSavedVideos = () => {
-    const collectionRef = collection(firestore, 'TalkingPhotos');
+    const collectionRef = query(
+      collection(firestore, 'TalkingPhotos'),
+      orderBy('timestamp', 'desc')
+    );
     onSnapshot(collectionRef, (snapshot) => {
       const data = snapshot.docs.map((doc) => {
         const docData = doc.data();
@@ -61,6 +69,7 @@ export default function Gallery() {
     video.pause();
     video.src = '';
     setVideoOnPlay(false);
+    setCurrentVideo(null);
     // console.log(target);
   };
 
@@ -128,8 +137,8 @@ export default function Gallery() {
               onClick={closeVideoModal}
             ></i>
             <div className='mb-3 mt-5 flex items-center justify-between xxs:mt-2 xxs:justify-start'>
-              <h2 className='text-base text-black md:text-lg xl:text-2xl'>
-                Video name
+              <h2 className='text-base text-black md:text-lg xl:text-xl'>
+                {currentVideo?.title || 'Untitled Video'}
               </h2>
               <ul className='flex items-center justify-between xxs:ml-6'>
                 <li className='mr-3 xxs:mr-5'>
@@ -150,7 +159,8 @@ export default function Gallery() {
               controls
             ></video>
             <p className='text-sm text-black md:text-base'>
-              Uploaded 2023.03.24, 21:35
+              Uploaded on{' '}
+              {new Date(currentVideo?.timestamp as Date).toLocaleString()}
             </p>
           </div>
         </div>
@@ -191,6 +201,7 @@ export default function Gallery() {
                           canPlay={video.status === 'completed'}
                           canCopy={false}
                           canShare={false}
+                          setCurrentVideo={setCurrentVideo}
                           playVideo={playCurrentVideo}
                           removeVideo={removeVideo}
                           key={video.id}
@@ -230,11 +241,16 @@ export default function Gallery() {
                       />
                     );
                   })}
-                <button className='flex h-max w-[200px] cursor-pointer flex-col items-center rounded-2xl border-2 border-dashed border-gray-100 p-10'>
-                  <i className='fas fa-microphone text-4xl'></i>
-                  <span className='mt-5 inline-block text-base'>
-                    Click here to generate a new video
-                  </span>
+                <button className='out-box flex h-max w-[250px] cursor-pointer flex-col items-center rounded-2xl p-10'>
+                  <Link
+                    href='/get-started'
+                    className='inline-block h-max w-full'
+                  >
+                    <i className='fas fa-microphone text-4xl'></i>
+                    <span className='mt-5 inline-block text-base'>
+                      Click here to generate a new video
+                    </span>
+                  </Link>
                 </button>
               </div>
             </div>
@@ -250,6 +266,7 @@ const VideoCard = ({
   canPlay,
   canCopy,
   canShare,
+  setCurrentVideo,
   playVideo,
   removeVideo,
 }: {
@@ -257,6 +274,7 @@ const VideoCard = ({
   canPlay: boolean;
   canCopy?: boolean;
   canShare?: boolean;
+  setCurrentVideo?: React.Dispatch<any>;
   playVideo: (src: string) => void;
   removeVideo: (id: string) => void;
 }) => {
@@ -272,7 +290,7 @@ const VideoCard = ({
               : 'invisible opacity-0'
           }`}
         >
-          {canShare && (
+          {canShare && video.status !== 'failed' && (
             <button
               className='mr-2.5 flex h-[30px] w-[30px] items-center justify-center rounded-full bg-blue-500 p-2 text-white'
               title='Download video'
@@ -280,7 +298,7 @@ const VideoCard = ({
               <i className='fab fa-twitter'></i>
             </button>
           )}
-          {canCopy && (
+          {canCopy && video.status !== 'failed' && (
             <button
               className='mr-2.5 flex h-[30px] w-[30px] items-center justify-center rounded-full bg-blue-500 p-2 text-white'
               onClick={() => {
@@ -303,7 +321,7 @@ const VideoCard = ({
           )}
           {video.status === 'failed' ? (
             <button
-              className='icon-light flex items-center justify-center rounded-md p-2'
+              className='flex h-[30px] w-[30px] items-center justify-center rounded-full bg-blue-500 p-2 text-white'
               title='Delete video'
               onClick={() => removeVideo(video.id as string)}
             >
@@ -316,6 +334,7 @@ const VideoCard = ({
           onClick={() => {
             if (canPlay) {
               playVideo(video.video_url as string);
+              setCurrentVideo ? setCurrentVideo(video) : null;
             }
           }}
         >
@@ -351,7 +370,7 @@ const VideoCard = ({
           </p>
         ) : null}
         <p className='max-w-[200px] truncate text-center text-base'>
-          {video.id}
+          {video.title || video.id}
         </p>
         <p className='max-w-[200px] truncate text-center text-sm text-gray-500'>
           {new Date(video.timestamp as Date).toLocaleString()}

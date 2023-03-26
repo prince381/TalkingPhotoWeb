@@ -224,6 +224,16 @@ body.dark .bg-main {
   background: #212121;
 }
 
+.out-box {
+  border: 2px dashed #2d2d2d;
+  border-radius: 20px;
+  transition: border 0.3s ease;
+}
+
+body.dark .out-box {
+  border: 2px dashed #e5e5e5;
+}
+
 .aside .video-card {
   background: #fff;
   width: 100%;
