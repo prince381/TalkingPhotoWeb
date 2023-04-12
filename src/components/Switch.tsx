@@ -13,7 +13,7 @@ export default function Switch({
         className='hidden appearance-none'
         onChange={(e) => toggle(e.target.checked)}
       />
-      <label htmlFor='theme-toggle' className='cursor-pointer'>
+      <label htmlFor='theme-toggle' className='cursor-pointer select-none'>
         Night mode
       </label>
     </div>

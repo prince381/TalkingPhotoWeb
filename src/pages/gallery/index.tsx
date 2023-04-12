@@ -214,7 +214,7 @@ export default function Gallery() {
             ) : null}
           </div>
           <div
-            className={`aside card fixed right-0 top-[50%] z-50 h-[100%] w-[70%] max-w-[300px] -translate-y-[50%] overflow-y-auto overflow-x-hidden shadow-md lg:sticky lg:top-0 lg:z-0 lg:h-screen lg:translate-y-0 lg:translate-x-0 lg:rounded-2xl ${
+            className={`aside card fixed right-0 top-[50%] z-50 h-[100%] w-[70%] max-w-[300px] -translate-y-[50%] overflow-y-auto overflow-x-hidden shadow-md lg:sticky lg:top-0 lg:z-0 lg:h-[85vh] lg:max-h-[700px] lg:translate-y-0 lg:translate-x-0 lg:rounded-2xl ${
               showVideos ? 'translate-x-0' : 'translate-x-full'
             } transition-all duration-300`}
           >
