@@ -188,7 +188,7 @@ export default function GetStarted() {
         },
       ],
       ratio: '16:9',
-      test: false,
+      test: true,
       version: 'v1alpha',
     };
 
