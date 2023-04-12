@@ -54,6 +54,8 @@ export default function Gallery() {
 
   const removeVideo = async (id: string) => {
     try {
+      const newVideos = [...videos.filter((video) => video.id !== id)];
+      setVideos(newVideos);
       await deleteDocument('TalkingPhotos', id);
     } catch (error) {
       console.log('Something went wrong while deleting video:', error);

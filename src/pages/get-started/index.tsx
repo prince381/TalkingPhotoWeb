@@ -193,7 +193,7 @@ export default function GetStarted() {
         },
       ],
       ratio: '16:9',
-      test: true,
+      test: false,
       version: 'v1alpha',
     };
 
