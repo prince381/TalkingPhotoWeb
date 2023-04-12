@@ -40,7 +40,8 @@ export default function Gallery() {
         const id = doc.id;
         return { id, ...docData };
       });
-      setVideos(data as VideoResponseType[]);
+      if (data.length > 0) setVideos(data as VideoResponseType[]);
+      else setLoading(false);
     });
   };
 
