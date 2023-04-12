@@ -117,10 +117,14 @@ export default function GetStarted() {
     })();
   }, []);
 
+  // Automatically set the first video preview when all data
+  // is loaded
   useEffect(() => {
     if (photos && premade) {
-      console.log(premade, photos);
-      const avatars = photos.filter((photo: Photo) => !photo.is_preset);
+      // console.log(premade, photos);
+      const avatars = photos.filter(
+        (photo: Photo) => !photo.is_preset && savedPhotoIds.includes(photo.id)
+      );
       if (selectedAvatar.id && videoName) return;
       setSelectedAvatar(avatars[0]);
       setVideoName(premadeVideos[0].id);
@@ -128,6 +132,7 @@ export default function GetStarted() {
   }, [premade, photos]);
 
   useEffect(() => {
+    // console.log(selectedAvatar);
     if (selectedAvatar.id && premade) {
       const video = premade.find(
         (doc) => doc.id === selectedAvatar.id
@@ -406,7 +411,7 @@ export default function GetStarted() {
                   }}
                 ></video>
               ) : (
-                <div className='skeleton-load z-1 absolute left-0 top-0 h-full w-full md:max-h-full'></div>
+                <div className='skeleton-load z-1 absolute left-0 top-0 h-full max-h-[300px] min-h-[300px] w-full md:max-h-full'></div>
               )}
               {!videoLoaded ? (
                 <div className='skeleton-load z-1 absolute left-0 top-0 h-full w-full md:max-h-full'></div>
