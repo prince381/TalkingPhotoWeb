@@ -24,7 +24,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [showHeader, setShowHeader] = React.useState(true);
 
   React.useLayoutEffect(() => {
-    if (router.pathname === '/login') {
+    if (['/', '/login', '/success'].includes(router.pathname)) {
       setShowHeader(false);
     } else {
       setShowHeader(true);

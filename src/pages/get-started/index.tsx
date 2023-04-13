@@ -301,7 +301,7 @@ export default function GetStarted() {
       <div className='mx-auto h-max w-[95%] max-w-[1200px] py-10'>
         <div className='flex h-max w-full flex-col items-center'>
           <div className='card flex h-max w-full flex-col items-center rounded-lg px-2.5 py-4 shadow-sm xs:px-4 md:flex-row lg:py-6 xl:py-10'>
-            <div className='flex h-full w-full flex-col items-center md:h-fit md:w-max'>
+            <div className='flex h-full w-full flex-col items-center md:h-fit md:w-max lg:min-w-[250px]'>
               <h2 className='sub-card mb-3 inline-block self-start whitespace-nowrap rounded-3xl py-1.5 px-5 text-sm lg:mb-5 lg:text-base'>
                 Pick the bestie
               </h2>
@@ -315,7 +315,7 @@ export default function GetStarted() {
                         )
                         .map((photo: Photo, index: number) => (
                           <div
-                            className='mr-4 mb-2 flex flex-col-reverse items-center last:mr-0 sm:mr-6 sm:last:mr-0 md:mr-0 md:items-start lg:flex-row lg:items-center lg:justify-end lg:last:mb-0'
+                            className='mr-4 mb-2 flex flex-col-reverse items-center last:mr-0 sm:mr-6 sm:last:mr-0 md:mr-0 md:items-start lg:min-w-[250px] lg:flex-row lg:items-center lg:justify-end  lg:last:mb-0'
                             key={photo.id}
                           >
                             <p
@@ -394,7 +394,7 @@ export default function GetStarted() {
                 ></i>
               )}
             </div>
-            <div className='flex h-full w-full flex-col items-center md:h-fit md:w-max'>
+            <div className='flex h-full w-full flex-col items-center md:h-fit md:w-max lg:min-w-[250px]'>
               <h2 className='sub-card mb-3 inline-block self-start whitespace-nowrap rounded-3xl py-1.5 px-5 text-sm lg:mb-5 lg:text-base'>
                 Choose the song
               </h2>
@@ -403,7 +403,7 @@ export default function GetStarted() {
                   {photos && premade
                     ? premadeVideos.map((vid) => (
                         <div
-                          className='mr-4 mb-2 flex flex-col items-center last:mr-0 sm:mr-6 sm:last:mr-0 md:mr-0 md:flex-row md:justify-start lg:last:mb-0'
+                          className='mr-4 mb-2 flex flex-col items-center last:mr-0 sm:mr-6 sm:last:mr-0 md:mr-0 md:flex-row md:justify-start lg:min-w-[250px] lg:last:mb-0'
                           key={vid.id}
                         >
                           <div

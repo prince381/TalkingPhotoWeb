@@ -257,7 +257,7 @@ export default function Gallery() {
                   >
                     <i className='fas fa-microphone text-4xl'></i>
                     <span className='mt-5 inline-block text-base'>
-                      Click here to generate a new video
+                      Click here to generate a new audio
                     </span>
                   </Link>
                 </button>

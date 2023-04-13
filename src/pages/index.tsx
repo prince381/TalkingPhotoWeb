@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import * as React from 'react';
@@ -6,22 +7,75 @@ import * as React from 'react';
 import Seo from '@/components/Seo';
 
 export default function Home() {
+  const [playing, setPlaying] = React.useState(false);
+  const introvid = React.useRef<HTMLVideoElement>(null);
+
+  const playVideo = () => {
+    if (introvid.current) {
+      if (playing) {
+        introvid.current.pause();
+        setPlaying(false);
+      } else {
+        introvid.current.play();
+        setPlaying(true);
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    if (introvid.current) {
+      introvid.current.addEventListener('ended', () => {
+        setPlaying(false);
+      });
+    }
+  }, []);
+
   return (
     <>
       <Seo templateTitle='Home' />
-
       <main>
+        <div className='fixed -left-10 -z-10 w-screen md:left-0'>
+          <img src='/images/domino.png' alt='background fixed image' />
+        </div>
         <div className='flex h-screen w-screen flex-col items-center justify-center'>
-          <div className='text-2xl'>Talking Photo</div>
-          <Link href='/get-started'>
-            <motion.button
-              whileTap={{ scale: 1.05 }}
-              whileHover={{ scale: 1.05 }}
-              className=' mt-7 rounded-lg border border-gray-700 bg-gray-50 bg-opacity-10 px-5 py-1'
-            >
-              Get Started
-            </motion.button>
-          </Link>
+          <div className='mx-auto flex h-max min-h-[70vh] w-[95%] max-w-[1200px] flex-col py-20 md:flex-row md:items-center'>
+            <div className='mb-8 flex flex-col items-center justify-center md:mb-0 md:w-[50%]'>
+              <h1 className='text-5xl md:text-[5rem] xl:text-[7rem]'>ALL-IN</h1>
+              <h1 className='my-3 text-3xl md:my-5 md:text-[4rem] lg:my-10 xl:text-[6rem]'>
+                PODCAST
+              </h1>
+              <h1 className='mb-5 text-5xl text-blue-500 md:text-[5rem] xl:mb-16 xl:text-[7rem]'>
+                AI
+              </h1>
+              <Link href='/get-started'>
+                <motion.button
+                  whileTap={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05 }}
+                  className='rounded-5xl embed flex w-full max-w-[400px] cursor-pointer items-center justify-center self-center bg-blue-500 py-3 px-10 text-white md:py-5 md:px-12 xl:w-[250px]'
+                >
+                  Get Started
+                </motion.button>
+              </Link>
+            </div>
+            <div className='relative h-full max-h-[500px] min-h-[40vh] w-full md:fixed md:right-0 md:top-[50%] md:h-[90vh] md:max-h-[90vh] md:w-[50%] md:-translate-y-[50%]'>
+              <video
+                ref={introvid}
+                src='https://firebasestorage.googleapis.com/v0/b/mochi-tales.appspot.com/o/premadeVideos%2Fallinone.mp4?alt=media&token=85cae9d8-7828-4667-87ad-eff89ef5006c'
+                className='h-full max-h-[500px] w-full md:max-h-[90vh] xl:min-w-[800px]'
+              ></video>
+              {!playing ? (
+                <i
+                  className='fas fa-play z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
+                  onClick={playVideo}
+                ></i>
+              ) : (
+                <i
+                  className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
+                  onClick={playVideo}
+                ></i>
+              )}
+            </div>
+          </div>
         </div>
       </main>
     </>

@@ -121,14 +121,14 @@ export default function Login() {
               <p className='my-5 text-base'>
                 Don't have an account? &nbsp;
                 <span
-                  className='text-blue-500'
+                  className='cursor-pointer text-blue-500'
                   onClick={() => setLoginState(false)}
                 >
                   Sign up
                 </span>
               </p>
             ) : (
-              <p className='my-5 text-base'>
+              <p className='my-5 cursor-pointer text-base'>
                 Already have an account? &nbsp;
                 <span
                   className='text-blue-500'
