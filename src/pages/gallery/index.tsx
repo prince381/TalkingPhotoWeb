@@ -1,3 +1,4 @@
+/* eslint-disable unused-imports/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -10,7 +11,6 @@ import React, { useEffect, useState } from 'react';
 import {
   deleteDocument,
   fetchVideoStatus,
-  removeFromStorage,
   VideoResponseType,
 } from '@/lib/helper';
 
@@ -108,15 +108,15 @@ export default function Gallery() {
   }, [videos, isError]);
 
   // Remove the temporary saved audio file from storage
-  useEffect(() => {
-    (async () => {
-      console.log(router.query);
-      const { storageRef, file } = router.query;
-      if (storageRef && file) {
-        await removeFromStorage(storageRef as string, file as string);
-      }
-    })();
-  }, [router.query]);
+  // useEffect(() => {
+  //   (async () => {
+  //     console.log(router.query);
+  //     const { storageRef, file } = router.query;
+  //     if (storageRef && file) {
+  //       await removeFromStorage(storageRef as string, file as string);
+  //     }
+  //   })();
+  // }, [router.query]);
 
   return (
     <>
