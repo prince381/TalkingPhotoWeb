@@ -504,7 +504,7 @@ export default function GetStarted() {
                 </p>
                 <div className='relative mt-5 min-h-[270px] w-full overflow-hidden rounded-lg lg:min-h-[300px]'>
                   <video
-                    src='https://firebasestorage.googleapis.com/v0/b/mochi-tales.appspot.com/o/premadeVideos%2FChamath%20telling%20jokes.mp4?alt=media&token=7f1d1439-2115-4177-97e7-9206614153e7'
+                    src='https://firebasestorage.googleapis.com/v0/b/mochi-tales.appspot.com/o/premadeVideos%2FJ%20for%20allin.mp4?alt=media&token=414cbba7-4db4-4605-b73e-6c64979c00d4'
                     className='min-h-[270px] w-full object-cover lg:min-h-[300px]'
                     id='demo'
                     // onCanPlayThrough={() => {}}
