@@ -220,7 +220,7 @@ export default function GetStarted() {
           status: 'processing',
         };
 
-        console.log(audioData);
+        // console.log(audioData);
 
         // check if the user is logged in or not and if not, redirect to login page
         // but first save the input data in a cookie
