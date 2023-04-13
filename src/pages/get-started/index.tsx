@@ -489,15 +489,20 @@ export default function GetStarted() {
           <div className='mt-8 flex h-max w-full flex-col items-center md:items-start lg:flex-row'>
             <div className='mb-5 h-max w-full rounded-lg  bg-blue-500 py-3 px-4 shadow-sm md:py-5 md:px-8 lg:mb-0 lg:mr-4 lg:h-[600px] lg:w-[40%] lg:py-8'>
               <div className='flex h-max w-full flex-col'>
-                <h2 className='mb-4 text-base text-white'>Want more?</h2>
-                <p className='text-gray-100'>
-                  Lorem ipsum dolor sit, amet consectetur adipisicing elit.
-                  Laudantium maxime, commodi numquam minima cum tempore est
-                  aliquam hic odit esse aperiam neque pariatur obcaecati itaque
-                  voluptas adipisci ab ipsa accusamus natus quam rerum modi
-                  provident, cupiditate dolorem.
+                <h2 className='mb-2 text-base text-white'>Want more?</h2>
+                <p className='text-sm text-gray-100'>
+                  Hey folks, it's Jason here! Let me introduce you to
+                  AllInPod.ai, an incredible AI audio experience created by the
+                  talented team at My Creativity Box. They heard our request on
+                  the All In podcast to come up with AI-generated rap songs
+                  featuring us - the Besties: Chamath, Sacks, and Friedberg. So,
+                  they designed this cutting-edge platform that lets you create
+                  personalized rap verses using our unique voices. Dive into
+                  this entertaining audio adventure and have a blast crafting
+                  your own lyrical masterpieces with AllInPod.ai. Give it a
+                  whirl, and unleash your creativity!
                 </p>
-                <div className='relative mt-8 min-h-[270px] w-full overflow-hidden rounded-lg lg:min-h-[300px]'>
+                <div className='relative mt-5 min-h-[270px] w-full overflow-hidden rounded-lg lg:min-h-[300px]'>
                   <video
                     src='https://firebasestorage.googleapis.com/v0/b/mochi-tales.appspot.com/o/premadeVideos%2FChamath%20telling%20jokes.mp4?alt=media&token=7f1d1439-2115-4177-97e7-9206614153e7'
                     className='min-h-[270px] w-full object-cover lg:min-h-[300px]'
