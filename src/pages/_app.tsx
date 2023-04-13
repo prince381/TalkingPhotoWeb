@@ -1,4 +1,6 @@
 import { AppProps } from 'next/app';
+import { useRouter } from 'next/router';
+import React from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
 import '@/styles/all.css';
@@ -18,9 +20,20 @@ import Header from '@/components/layout/Header';
 const queryClient = new QueryClient();
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+  const [showHeader, setShowHeader] = React.useState(true);
+
+  React.useLayoutEffect(() => {
+    if (router.pathname === '/login') {
+      setShowHeader(false);
+    } else {
+      setShowHeader(true);
+    }
+  }, [router]);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <Header />
+      {showHeader && <Header />}
       <Component {...pageProps} />
     </QueryClientProvider>
   );

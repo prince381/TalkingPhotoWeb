@@ -6,8 +6,14 @@ import {
   doc,
   DocumentData,
   getDocs,
+  updateDoc,
 } from 'firebase/firestore';
-import { deleteObject, ref } from 'firebase/storage';
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytes,
+} from 'firebase/storage';
 
 import { firestore, storage } from '../../firebase/firebase';
 
@@ -65,6 +71,22 @@ export type VideoMetaData = {
   video_id: string;
 };
 
+export type AudioData = {
+  id?: string;
+  url?: string;
+  talkingAvatar: {
+    circle_image: string;
+    id: string;
+    image_url: string;
+  };
+  audioTitle: string;
+  inputText: string;
+  voiceId: string;
+  timestamp: Date;
+  audioId: string;
+  status: 'processing' | 'completed' | 'failed';
+};
+
 // !STARTERCONF This OG is generated from https://github.com/theodorusclarence/og
 // Please clone them and self-host if your site is going to be visited by many people.
 // Then change the url and the default logo.
@@ -99,6 +121,15 @@ export function getFromSessionStorage(key: string): string | null {
     return sessionStorage.getItem(key);
   }
   return null;
+}
+
+// Create a function that returns a random string of 36 characters
+export function uuidv4(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0,
+      v = c == 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
 
 export function trimChar(
@@ -292,6 +323,22 @@ export const getVoiceOver = async (
     throw error;
   }
 };
+
+export async function generateAudio(track: AudioData) {
+  const { audioId, audioTitle, inputText, voiceId } = track;
+  try {
+    const voiceBlob = await getVoiceOver(inputText, voiceId);
+    const audioRef = ref(storage, `generatedPodcasts/${audioTitle}.mp3`);
+    await uploadBytes(audioRef, voiceBlob);
+    const audioUrl = await getDownloadURL(audioRef);
+    const audioDoc = doc(firestore, 'AudioPodcasts', audioId);
+    await updateDoc(audioDoc, { url: audioUrl, status: 'completed' });
+  } catch (error) {
+    const audioDoc = doc(firestore, 'AudioPodcasts', audioId);
+    await updateDoc(audioDoc, { status: 'failed' });
+    console.log(error);
+  }
+}
 
 // get all voices
 export async function fetchVoices() {

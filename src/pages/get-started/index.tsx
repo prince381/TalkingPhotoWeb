@@ -5,24 +5,17 @@
 /* eslint-disable no-console */
 import axios from 'axios';
 import { doc, DocumentData, onSnapshot, setDoc } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import Cookies from 'js-cookie';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 
-import {
-  createVideo,
-  fetchPhotos,
-  fetchVoices,
-  getVoiceOver,
-  queryStore,
-  VideoPayloadType,
-} from '@/lib/helper';
+import { fetchPhotos, fetchVoices, queryStore, uuidv4 } from '@/lib/helper';
 
 import LoadingScreen from '@/components/LoadingScreen';
 
-import { firestore, storage } from '../../../firebase/firebase';
+import { firestore } from '../../../firebase/firebase';
 
 const getPremadeVideos = async () => {
   try {
@@ -50,11 +43,12 @@ export default function GetStarted() {
     {} as DocumentData
   );
 
+  const [SSID, setSSID] = useState<string>('');
   const [inputText, setInputText] = useState('');
   const [videoName, setVideoName] = useState('');
   const [vidOnPlay, setVidOnPlay] = useState('');
   const [appState, setAppState] = useState('init');
-  const [videoTitle, setVideoTitle] = useState('');
+  const [audioTitle, setAudioTitle] = useState('');
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [ips, setIps] = useState<string[]>([]);
@@ -106,6 +100,16 @@ export default function GetStarted() {
   };
 
   useEffect(() => {
+    const ssid = Cookies.get('allin_SSID');
+
+    if (!ssid) {
+      const sessionId = uuidv4();
+      Cookies.set('allin_SSID', sessionId);
+      setSSID(sessionId);
+    } else {
+      setSSID(ssid);
+    }
+
     getSavedIPs();
     (async () => {
       try {
@@ -180,68 +184,7 @@ export default function GetStarted() {
     });
   };
 
-  const sendVideo = async (avatar_id: string, audio: string, title: string) => {
-    if (!avatar_id || !audio || !title) return;
-    const payload: VideoPayloadType = {
-      background: '#000000',
-      clips: [
-        {
-          talking_photo_id: avatar_id,
-          talking_photo_style: 'normal',
-          input_audio: audio,
-          scale: 1,
-        },
-      ],
-      ratio: '16:9',
-      test: false,
-      version: 'v1alpha',
-    };
-
-    try {
-      const response = await createVideo(payload);
-      const { talking_photo_id, video_id, timestamp } = response;
-      const avatar = photos.find(
-        (photo: Photo) => photo.id === talking_photo_id
-      );
-
-      if (avatar) {
-        const _doc = doc(firestore, `TalkingPhotos/${video_id}`);
-        await setDoc(_doc, {
-          talking_photo: avatar,
-          status: 'processing',
-          timestamp,
-          video_id,
-          title,
-        });
-
-        // if (!ips.includes(userIp)) {
-        //   const ipRef = doc(firestore, 'metadata', 'talkingphoto');
-        //   await setDoc(ipRef, {
-        //     ip_addresses: [...ips, userIp],
-        //   });
-        // }
-
-        router.push(
-          {
-            pathname: '/gallery',
-            query: {
-              storageRef: 'generatedPodcasts',
-              file: `${talkingAvatar.id}.mp3`,
-            },
-          },
-          '/gallery'
-        );
-      } else {
-        setLoading(false);
-        throw new Error('Something went wrong while saving data to firestore');
-      }
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  };
-
-  const generateVideo = async () => {
+  const generateAudio = async () => {
     // console.log(ips, userIp);
     // if (ips.includes(userIp)) {
     //   alert('You have reached your limit of one request per IP address!');
@@ -264,14 +207,37 @@ export default function GetStarted() {
           (voice: any) =>
             voice.category === 'cloned' && voice.name === targetName
         );
-        const voiceBlob = await getVoiceOver(inputText, targetVoice.voice_id);
-        const audioRef = ref(
-          storage,
-          `generatedPodcasts/${talkingAvatar.id}.mp3`
-        );
-        await uploadBytes(audioRef, voiceBlob);
-        const audioUrl = await getDownloadURL(audioRef);
-        await sendVideo(talkingAvatar.id, audioUrl, title);
+        const targetVoiceId = targetVoice
+          ? targetVoice.voice_id
+          : 'TxGEqnHWrfWFTfGW9XjX';
+        const audioData = {
+          inputText,
+          talkingAvatar,
+          audioTitle: title,
+          voiceId: targetVoiceId,
+          timestamp: Date.now(),
+          audioId: uuidv4(),
+          status: 'processing',
+        };
+
+        console.log(audioData);
+
+        // check if the user is logged in or not and if not, redirect to login page
+        // but first save the input data in a cookie
+        const user = Cookies.get('allinUserCred');
+        if (!user) {
+          Cookies.set('allinTempAudioData', JSON.stringify(audioData), {
+            expires: 1,
+          });
+          router.push('/login');
+        } else {
+          const userCred = JSON.parse(user);
+          const { uid } = userCred;
+          const _docData = { ...audioData, id: uid };
+          const _doc = doc(firestore, `AudioPodcasts/${audioData.audioId}`);
+          await setDoc(_doc, _docData);
+          router.push('/gallery');
+        }
       } else {
         setLoading(false);
       }
@@ -309,15 +275,15 @@ export default function GetStarted() {
             className='modal-card flex h-max w-[90%] max-w-[700px] flex-col items-center rounded-lg p-5 shadow-md lg:py-8 lg:px-12'
           >
             <h2 className='text-lg font-bold md:self-start lg:text-xl xxl:text-2xl'>
-              What should we title your video?
+              What should we title your audio?
             </h2>
             <input
               ref={inputRef}
-              value={videoTitle}
+              value={audioTitle}
               type='text'
               className='sub-card my-6 w-full rounded-lg border-none py-3 outline-none'
               onChange={() => {
-                setVideoTitle(inputRef.current?.value || '');
+                setAudioTitle(inputRef.current?.value || '');
               }}
               autoFocus
               onFocus={(e) => e.target.select()}
@@ -325,7 +291,7 @@ export default function GetStarted() {
             />
             <button
               className='rounded-5xl w-full max-w-[300px] bg-blue-500 py-4 px-10 text-white'
-              onClick={generateVideo}
+              onClick={generateAudio}
             >
               Confirm
             </button>
@@ -502,12 +468,11 @@ export default function GetStarted() {
                   your own lyrical masterpieces with AllInPod.ai. Give it a
                   whirl, and unleash your creativity!
                 </p>
-                <div className='relative mt-5 min-h-[270px] w-full overflow-hidden rounded-lg lg:min-h-[300px]'>
+                <div className='relative mt-5 min-h-[250px] w-full overflow-hidden rounded-lg xl:min-h-[270px]'>
                   <video
                     src='https://firebasestorage.googleapis.com/v0/b/mochi-tales.appspot.com/o/premadeVideos%2FJ%20for%20allin.mp4?alt=media&token=414cbba7-4db4-4605-b73e-6c64979c00d4'
-                    className='min-h-[270px] w-full object-cover lg:min-h-[300px]'
+                    className='min-h-[250px] w-full object-cover xl:min-h-[270px]'
                     id='demo'
-                    // onCanPlayThrough={() => {}}
                   ></video>
                   {vidOnPlay !== 'demo' ? (
                     <i
@@ -574,7 +539,7 @@ export default function GetStarted() {
                                   const defaultText = `${getName(
                                     photo.id
                                   )}_${formatDate(new Date())}`;
-                                  setVideoTitle(defaultText);
+                                  setAudioTitle(defaultText);
                                 }}
                               >
                                 <img
@@ -618,3 +583,67 @@ export default function GetStarted() {
     </>
   );
 }
+
+//====================================================================================
+//                        COMMENTED OUT CODE FOR FUTURE USE
+//====================================================================================
+// const sendVideo = async (avatar_id: string, audio: string, title: string) => {
+//   if (!avatar_id || !audio || !title) return;
+//   const payload: VideoPayloadType = {
+//     background: '#000000',
+//     clips: [
+//       {
+//         talking_photo_id: avatar_id,
+//         talking_photo_style: 'normal',
+//         input_audio: audio,
+//         scale: 1,
+//       },
+//     ],
+//     ratio: '16:9',
+//     test: false,
+//     version: 'v1alpha',
+//   };
+
+//   try {
+//     const response = await createVideo(payload);
+//     const { talking_photo_id, video_id, timestamp } = response;
+//     const avatar = photos.find(
+//       (photo: Photo) => photo.id === talking_photo_id
+//     );
+
+//     if (avatar) {
+//       const _doc = doc(firestore, `TalkingPhotos/${video_id}`);
+//       await setDoc(_doc, {
+//         talking_photo: avatar,
+//         status: 'processing',
+//         timestamp,
+//         video_id,
+//         title,
+//       });
+
+// if (!ips.includes(userIp)) {
+//   const ipRef = doc(firestore, 'metadata', 'talkingphoto');
+//   await setDoc(ipRef, {
+//     ip_addresses: [...ips, userIp],
+//   });
+// }
+
+//       router.push(
+//         {
+//           pathname: '/gallery',
+//           query: {
+//             storageRef: 'generatedPodcasts',
+//             file: `${talkingAvatar.id}.mp3`,
+//           },
+//         },
+//         '/gallery'
+//       );
+//     } else {
+//       setLoading(false);
+//       throw new Error('Something went wrong while saving data to firestore');
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     throw error;
+//   }
+// };
