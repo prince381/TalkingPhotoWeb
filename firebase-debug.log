@@ -1,0 +1,16 @@
+[debug] [2023-04-14T15:34:42.372Z] ----------------------------------------------------------------------
+[debug] [2023-04-14T15:34:42.374Z] Command:       /Users/princeowusu/.nvm/versions/node/v16.17.1/bin/node /Users/princeowusu/.nvm/versions/node/v16.17.1/bin/firebase use all-in-pod
+[debug] [2023-04-14T15:34:42.374Z] CLI Version:   11.17.0
+[debug] [2023-04-14T15:34:42.375Z] Platform:      darwin
+[debug] [2023-04-14T15:34:42.375Z] Node Version:  v16.17.1
+[debug] [2023-04-14T15:34:42.375Z] Time:          Fri Apr 14 2023 15:34:42 GMT+0000 (Greenwich Mean Time)
+[debug] [2023-04-14T15:34:42.376Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2023-04-14T15:34:42.382Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2023-04-14T15:34:42.382Z] > authorizing via signed-in user (powusu381@gmail.com)
+[debug] [2023-04-14T15:34:47.402Z] Error: Timed out.
+    at Timeout._onTimeout (/Users/princeowusu/.nvm/versions/node/v16.17.1/lib/node_modules/firebase-tools/lib/utils.js:253:49)
+    at listOnTimeout (node:internal/timers:559:17)
+    at processTimers (node:internal/timers:502:7)
+[error] 
+[error] Error: An unexpected error has occurred.

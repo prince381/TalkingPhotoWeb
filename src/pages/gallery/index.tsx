@@ -13,7 +13,7 @@ import {
 import Cookies from 'js-cookie';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { AudioData, deleteDocument, generateAudio } from '@/lib/helper';
 
@@ -82,13 +82,6 @@ export default function Gallery() {
     // console.log(target);
   };
 
-  useLayoutEffect(() => {
-    const user = Cookies.get('allinUserCred');
-    if (!user) {
-      router.push('/login');
-    }
-  }, []);
-
   useEffect(() => {
     const user = Cookies.get('allinUserCred');
     if (user) {
@@ -147,8 +140,8 @@ export default function Gallery() {
               className='fas fa-times absolute right-3 top-2 cursor-pointer text-xl text-black xxs:right-5 xxs:top-4 md:text-2xl'
               onClick={closeAudioModal}
             ></i>
-            <div className='mb-8 mt-6 flex items-center justify-between xxs:mt-2 xxs:justify-start'>
-              <h2 className='text-base text-black md:text-lg xl:text-xl'>
+            <div className='mb-8 mt-6 flex flex-col-reverse items-center justify-between xxs:mt-2 xxs:justify-start xs:flex-row'>
+              <h2 className='mt-3 max-w-[400px] truncate text-base text-black xs:mt-0 md:text-lg xl:text-xl'>
                 {currentAudio?.audioTitle || 'Untitled Audio'}
               </h2>
               <ul className='flex items-center justify-between xxs:ml-6'>

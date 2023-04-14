@@ -57,11 +57,12 @@ export default function Home() {
                 </motion.button>
               </Link>
             </div>
-            <div className='relative h-full max-h-[500px] min-h-[40vh] w-full md:fixed md:right-0 md:top-[50%] md:h-[90vh] md:max-h-[90vh] md:w-[50%] md:-translate-y-[50%]'>
+            <div className='group relative h-full max-h-[500px] min-h-[40vh] w-full md:fixed md:right-0 md:top-[50%] md:h-[90vh] md:max-h-[90vh] md:w-[50%] md:-translate-y-[50%]'>
               <video
                 ref={introvid}
-                src='https://firebasestorage.googleapis.com/v0/b/mochi-tales.appspot.com/o/premadeVideos%2Fallinone.mp4?alt=media&token=85cae9d8-7828-4667-87ad-eff89ef5006c'
+                src='https://firebasestorage.googleapis.com/v0/b/all-in-pod.appspot.com/o/premadeVideos%2Fallinone.mp4?alt=media&token=a966bce5-873f-445c-bf98-71f95fa3bf54#t=0.001'
                 className='h-full max-h-[500px] w-full md:max-h-[90vh] xl:min-w-[800px]'
+                preload='metadata'
               ></video>
               {!playing ? (
                 <i
@@ -70,7 +71,7 @@ export default function Home() {
                 ></i>
               ) : (
                 <i
-                  className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
+                  className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white opacity-0 shadow-xl transition-opacity group-hover:opacity-100'
                   onClick={playVideo}
                 ></i>
               )}

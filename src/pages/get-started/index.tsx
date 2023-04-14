@@ -72,11 +72,11 @@ export default function GetStarted() {
     },
     { title: 'Mockingbird', artiste: 'Eminem', id: 'mockingbird' },
     {
-      title: 'Amari',
-      artiste: 'J Cole',
-      id: 'amari',
+      title: 'Starboy',
+      artiste: 'The Weeknd',
+      id: 'starboy',
     },
-    { title: 'Rich as F**k', artiste: 'Lil Wayne', id: 'rich_as_fk' },
+    { title: 'All the way up', artiste: 'Fat Joe', id: 'all_the_way_up' },
   ];
 
   const { data: photos, isLoading: loadingPhotos } = useQuery(
@@ -360,7 +360,7 @@ export default function GetStarted() {
               </div>
             </div>
             <div
-              className={`relative mx-5 mb-7 h-full max-h-[300px] min-h-[300px] w-full max-w-[600px] md:mb-0 md:max-h-full ${
+              className={`group relative mx-5 mb-7 h-full max-h-[300px] min-h-[300px] w-full max-w-[600px] md:mb-0 md:max-h-full ${
                 videoPreview && videoPreview[videoName] && videoLoaded
                   ? 'border-2 border-blue-400'
                   : ''
@@ -368,9 +368,10 @@ export default function GetStarted() {
             >
               {videoPreview && videoPreview[videoName] ? (
                 <video
-                  src={videoPreview[videoName]}
+                  src={`${videoPreview[videoName]}#t=0.001`}
                   id='premade-vid'
                   className='h-full max-h-[300px] min-h-[300px] w-full max-w-[600px] object-cover md:max-h-full'
+                  preload='metadata'
                   onCanPlayThrough={() => {
                     console.log('video loaded ....');
                     setVideoLoaded(true);
@@ -389,7 +390,7 @@ export default function GetStarted() {
                 ></i>
               ) : (
                 <i
-                  className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
+                  className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white opacity-0 shadow-xl transition-opacity group-hover:opacity-100'
                   onClick={() => playCurrentVideo('premade-vid')}
                 ></i>
               )}
@@ -468,10 +469,11 @@ export default function GetStarted() {
                   your own lyrical masterpieces with AllInPod.ai. Give it a
                   whirl, and unleash your creativity!
                 </p>
-                <div className='relative mt-5 min-h-[250px] w-full overflow-hidden rounded-lg xl:min-h-[270px]'>
+                <div className='group relative mt-5 min-h-[250px] w-full overflow-hidden rounded-lg xl:min-h-[270px]'>
                   <video
-                    src='https://firebasestorage.googleapis.com/v0/b/mochi-tales.appspot.com/o/premadeVideos%2FJ%20for%20allin.mp4?alt=media&token=414cbba7-4db4-4605-b73e-6c64979c00d4'
+                    src='https://firebasestorage.googleapis.com/v0/b/all-in-pod.appspot.com/o/premadeVideos%2FJ%20for%20allin.mp4?alt=media&token=59c8c501-d970-4b0f-b0d5-0a56ba2f8e39#t=0.001'
                     className='min-h-[250px] w-full object-cover xl:min-h-[270px]'
+                    preload='metadata'
                     id='demo'
                   ></video>
                   {vidOnPlay !== 'demo' ? (
@@ -481,7 +483,7 @@ export default function GetStarted() {
                     ></i>
                   ) : (
                     <i
-                      className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
+                      className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white opacity-0 shadow-xl transition-opacity group-hover:opacity-100'
                       onClick={() => playCurrentVideo('demo')}
                     ></i>
                   )}

@@ -83,7 +83,7 @@ export default function Login() {
     <>
       <LoadingScreen loading={loading} />
       <div className='relative flex h-max min-h-[100vh] w-screen items-center justify-center'>
-        <div className='flex h-max w-[95%] max-w-[500px] flex-col items-center rounded-lg bg-white shadow-lg'>
+        <div className='modal-card flex h-max w-[95%] max-w-[500px] flex-col items-center rounded-lg shadow-lg'>
           <form
             className='flex h-max w-full flex-col items-center px-5 py-8 md:p-12'
             onSubmit={(e) => e.preventDefault()}
@@ -103,7 +103,7 @@ export default function Login() {
             </p>
             <input
               type='email'
-              className='border-1 my-6 w-full rounded-lg border-gray-300 bg-none py-3 outline-none focus:outline-none'
+              className='sub-card my-6 w-full rounded-lg border-none py-3 outline-none focus:outline-none'
               placeholder='Email address'
               value={email}
               onChange={(e) => setEmail(e.target.value)}
