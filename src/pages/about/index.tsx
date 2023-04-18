@@ -1,6 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-import { motion } from 'framer-motion';
-import Link from 'next/link';
 import * as React from 'react';
 
 // import Loader from '@/components/Loader';
@@ -37,31 +35,28 @@ export default function Home() {
         <div className='fixed -left-10 -z-10 w-screen md:left-0'>
           <img src='/images/domino.png' alt='background fixed image' />
         </div>
-        <div className='flex h-screen w-screen flex-col items-center justify-center'>
+        <div className='flex min-h-[70vh] w-screen flex-col items-center justify-center'>
           <div className='mx-auto flex h-max min-h-[70vh] w-[95%] max-w-[1200px] flex-col py-20 md:flex-row md:items-center'>
-            <div className='mb-8 flex flex-col items-center justify-center md:mb-0 md:w-[50%]'>
-              <h1 className='text-5xl md:text-[5rem] xl:text-[7rem]'>ALL-IN</h1>
-              <h1 className='my-3 text-3xl md:my-5 md:text-[4rem] lg:my-10 xl:text-[6rem]'>
-                PODCAST
-              </h1>
-              <h1 className='mb-5 text-5xl text-blue-500 md:text-[5rem] xl:mb-16 xl:text-[7rem]'>
-                AI
-              </h1>
-              <Link href='/create'>
-                <motion.button
-                  whileTap={{ scale: 1.05 }}
-                  whileHover={{ scale: 1.05 }}
-                  className='rounded-5xl embed flex w-full max-w-[400px] cursor-pointer items-center justify-center self-center bg-blue-500 py-3 px-10 text-white md:py-5 md:px-12 xl:w-[250px]'
-                >
-                  Get Started
-                </motion.button>
-              </Link>
+            <div className='mb-8 mr-10 flex flex-col items-center justify-center md:mb-0 md:w-[50%]'>
+              <h2 className='mb-5 text-5xl text-gray-800'>Want more?</h2>
+              <p className='text-center text-sm text-gray-800 md:text-base'>
+                Hey folks, it's Jason here! Let me introduce you to AllInPod.ai,
+                an incredible AI audio experience created by the talented team
+                at My Creativity Box. They heard our request on the All In
+                podcast to come up with AI-generated rap songs featuring us -
+                the Besties: Chamath, Sacks, and Friedberg. So, they designed
+                this cutting-edge platform that lets you create personalized rap
+                verses using our unique voices. Dive into this entertaining
+                audio adventure and have a blast crafting your own lyrical
+                masterpieces with AllInPod.ai. Give it a whirl, and unleash your
+                creativity!
+              </p>
             </div>
-            <div className='group relative h-full max-h-[500px] min-h-[40vh] w-full md:fixed md:right-0 md:top-[50%] md:h-[90vh] md:max-h-[90vh] md:w-[50%] md:-translate-y-[50%]'>
+            <div className='group relative h-full min-h-[50vh] w-full md:h-[70vh] md:w-[50%]'>
               <video
                 ref={introvid}
-                src='https://firebasestorage.googleapis.com/v0/b/all-in-pod.appspot.com/o/premadeVideos%2Fallinone.mp4?alt=media&token=a966bce5-873f-445c-bf98-71f95fa3bf54#t=0.001'
-                className='h-full max-h-[500px] w-full md:max-h-[90vh] xl:min-w-[800px]'
+                src='https://firebasestorage.googleapis.com/v0/b/all-in-pod.appspot.com/o/premadeVideos%2FJ%20for%20allin.mp4?alt=media&token=59c8c501-d970-4b0f-b0d5-0a56ba2f8e39#t=0.001'
+                className='h-full min-h-[50vh] w-full object-cover md:h-[70vh]'
                 preload='metadata'
               ></video>
               {!playing ? (

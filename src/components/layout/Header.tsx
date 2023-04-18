@@ -3,12 +3,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import * as React from 'react';
 
-import Switch from '@/components/Switch';
-
 const links = [
-  { href: '/get-started', label: 'Get started' },
+  { href: '/about', label: 'About us' },
+  { href: '/create', label: 'Generate' },
   { href: '/gallery', label: 'Gallery' },
-  // { href: '/create', label: 'Generate' },
 ];
 
 export default function Header() {
@@ -26,7 +24,7 @@ export default function Header() {
           allinpod.ai
         </Link>
         <div className='flex items-center'>
-          <Switch toggle={toggleTheme} />
+          {/* <Switch toggle={toggleTheme} /> */}
           <nav className='hidden sm:ml-8 sm:inline-block'>
             <ul className='flex items-center justify-between space-x-5 transition-all duration-75'>
               {links.map(({ href, label }) => (

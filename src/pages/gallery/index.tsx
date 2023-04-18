@@ -3,14 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-console */
-import {
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-  where,
-} from 'firebase/firestore';
-import Cookies from 'js-cookie';
+import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
@@ -29,12 +22,12 @@ export default function Gallery() {
   const [audioOnPlay, setAudioOnPlay] = useState(false);
   const [showAudio, setShowAudio] = useState(false);
   const [currentAudio, setCurrentAudio] = useState<AudioData | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
-  const getSavedPodcasts = (uid: string) => {
+  const getSavedPodcasts = () => {
     try {
       const collectionRef = query(
         collection(firestore, 'AudioPodcasts'),
-        where('id', '==', uid),
         orderBy('timestamp', 'desc')
       );
       onSnapshot(collectionRef, (snapshot) => {
@@ -82,14 +75,30 @@ export default function Gallery() {
     // console.log(target);
   };
 
+  const createTwitterShareContent = (id: string) => {
+    const hashtags =
+      'allinpodcast,davidsacks,jasoncalacanis,chamathpalihapitiya,davidfriedberg';
+    const text = 'AI made All-in podcast Besties talks';
+    const url = `${window.location.href}?track=${id}`;
+    return `https://twitter.com/intent/tweet?text=${text}&url=${url}&hashtags=${hashtags}`;
+  };
+
+  const shareToTwitter = (id: string) => {
+    const url = createTwitterShareContent(id);
+    window.open(url, '_blank');
+  };
+
+  const copyAudioLink = (id: string) => {
+    const url = `${window.location.href}?track=${id}`;
+    navigator.clipboard.writeText(url);
+    setLinkCopied(true);
+    setTimeout(() => {
+      setLinkCopied(false);
+    }, 2000);
+  };
+
   useEffect(() => {
-    const user = Cookies.get('allinUserCred');
-    if (user) {
-      const { uid } = JSON.parse(user);
-      getSavedPodcasts(uid);
-    } else {
-      getSavedPodcasts('');
-    }
+    getSavedPodcasts();
   }, []);
 
   useEffect(() => {
@@ -112,10 +121,20 @@ export default function Gallery() {
         setIsError(true);
       }
     })();
+
+    if (router.query.track) {
+      const id = router.query.track as string;
+      const track = tracks.find((track) => track.audioId === id);
+      if (track) {
+        setCurrentAudio(track);
+        setAudioOnPlay(true);
+        playCurrentAudio(track.url as string);
+      }
+    }
   }, [tracks]);
 
   useEffect(() => {
-    console.log(tracks);
+    // console.log(tracks);
     if (tracks.length > 0 || isError) setLoading(false);
   }, [tracks, isError]);
 
@@ -146,12 +165,29 @@ export default function Gallery() {
               </h2>
               <ul className='flex items-center justify-between xxs:ml-6'>
                 <li className='mr-3 xxs:mr-5'>
-                  <button className='flex h-[35px] w-[35px] cursor-pointer items-center justify-center rounded-full bg-blue-500 p-2 text-white shadow-md sm:h-[40px] sm:w-[40px]'>
+                  <button
+                    className='flex h-[35px] w-[35px] cursor-pointer items-center justify-center rounded-full bg-blue-500 p-2 text-white shadow-md sm:h-[40px] sm:w-[40px]'
+                    onClick={() =>
+                      shareToTwitter(currentAudio?.audioId as string)
+                    }
+                  >
                     <i className='fab fa-twitter text-sm sm:text-base md:text-lg'></i>
                   </button>
                 </li>
                 <li className='relative mr-3 xxs:mr-5'>
-                  <button className='flex h-[35px] w-[35px] cursor-pointer items-center justify-center rounded-full bg-blue-500 p-2 text-white shadow-md sm:h-[40px] sm:w-[40px]'>
+                  <span
+                    className={`absolute left-[50%] -top-6 -translate-x-[50%] text-sm text-blue-500 transition-all ${
+                      linkCopied ? 'visible opacity-100' : 'invisible opacity-0'
+                    }`}
+                  >
+                    Copied
+                  </span>
+                  <button
+                    className='flex h-[35px] w-[35px] cursor-pointer items-center justify-center rounded-full bg-blue-500 p-2 text-white shadow-md sm:h-[40px] sm:w-[40px]'
+                    onClick={() =>
+                      copyAudioLink(currentAudio?.audioId as string)
+                    }
+                  >
                     <i className='fas fa-copy text-sm sm:text-base md:text-lg'></i>
                   </button>
                 </li>
@@ -244,10 +280,7 @@ export default function Gallery() {
                     );
                   })}
                 <button className='out-box flex h-max w-[250px] cursor-pointer flex-col items-center rounded-2xl p-10'>
-                  <Link
-                    href='/get-started'
-                    className='inline-block h-max w-full'
-                  >
+                  <Link href='/create' className='inline-block h-max w-full'>
                     <i className='fas fa-microphone text-4xl'></i>
                     <span className='mt-5 inline-block text-base'>
                       Click here to generate a new audio
