@@ -6,22 +6,53 @@ import {
   sendSignInLinkToEmail,
   signInWithPopup,
 } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 
 import LoadingScreen from '@/components/LoadingScreen';
 
+import { UserContext } from '@/context/userContext';
+
 import { auth, firestore } from '../../../firebase/firebase';
 
 export default function Login() {
   const router = useRouter();
+  const userInfo = React.useContext(UserContext);
   const [email, setEmail] = useState('');
   const [sendingLink, setSendingLink] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [loginState, setLoginState] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  // Save temp data to firestore
+  async function saveTempDataToDb(uid: string) {
+    const tempData = Cookies.get('allinTempData');
+    if (tempData) {
+      const audioData = JSON.parse(tempData);
+      const _docData = { ...audioData, id: uid };
+      const _doc = doc(firestore, `AudioPodcasts/${audioData.audioId}`);
+      await setDoc(_doc, _docData);
+      Cookies.remove('allinTempData');
+    }
+  }
+
+  // Get or set user's info in firestore
+  async function saveUserInfo(uid: string, email: string) {
+    const _doc = doc(firestore, `Users/${uid}`);
+    const _docSnap = await getDoc(_doc);
+    if (_docSnap.exists()) {
+      const { email, uid, paid, videos } = _docSnap.data();
+      userInfo.setEmail(email);
+      userInfo.setUid(uid);
+      userInfo.setPaid(paid);
+      userInfo.setGeneratedVideos(videos);
+    } else {
+      const _docData = { email, uid, paid: false, videos: 0 };
+      await setDoc(_doc, _docData);
+    }
+  }
 
   const authenticateUserWithEmail = () => {
     if (email) {
@@ -48,17 +79,6 @@ export default function Login() {
     }
   };
 
-  async function saveTempDataToDb(uid: string) {
-    const tempData = Cookies.get('allinTempData');
-    if (tempData) {
-      const audioData = JSON.parse(tempData);
-      const _docData = { ...audioData, id: uid };
-      const _doc = doc(firestore, `AudioPodcasts/${audioData.audioId}`);
-      await setDoc(_doc, _docData);
-      Cookies.remove('allinTempData');
-    }
-  }
-
   const handleGoogleAuth = () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
@@ -70,7 +90,7 @@ export default function Login() {
           'allinUserCred',
           JSON.stringify({ email, displayName, uid })
         );
-        Cookies.set('allin_SSID', uid);
+        await saveUserInfo(uid, email as string);
         await saveTempDataToDb(uid);
         router.push('/gallery');
       })

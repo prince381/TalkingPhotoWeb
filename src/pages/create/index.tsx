@@ -11,7 +11,13 @@ import { useRouter } from 'next/router';
 import React, { useContext, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 
-import { fetchPhotos, fetchVoices, queryStore, uuidv4 } from '@/lib/helper';
+import {
+  fetchPhotos,
+  fetchVoices,
+  generateVideo,
+  queryStore,
+  uuidv4,
+} from '@/lib/helper';
 
 import LoadingScreen from '@/components/LoadingScreen';
 
@@ -49,7 +55,7 @@ type Photo = {
 export default function GetStarted() {
   // const [mode, setMode] = useState('dark');
   const router = useRouter();
-  const user = useContext(UserContext);
+  const userInfo = useContext(UserContext);
   const [selectedAvatar, setSelectedAvatar] = useState<Photo>({} as Photo);
   const [talkingAvatar, setTalkingAvatar] = useState<Photo>({} as Photo);
   const [videoPreview, selectVideoPreview] = useState<DocumentData>(
@@ -59,7 +65,7 @@ export default function GetStarted() {
   const [SSID, setSSID] = useState<string>('');
   const [inputText, setInputText] = useState('');
   const [artifactTitle, setArtifactTitle] = useState('');
-  const [artifactType, setArtifactType] = useState('audio');
+  const [artifactType, setArtifactType] = useState<'audio' | 'video'>('audio');
   const [videoName, setVideoName] = useState('');
   const [vidOnPlay, setVidOnPlay] = useState('');
   const [appState, setAppState] = useState('init');
@@ -193,13 +199,7 @@ export default function GetStarted() {
     });
   };
 
-  const generateAudio = async () => {
-    // console.log(ips, userIp);
-    // if (ips.includes(userIp)) {
-    //   alert('You have reached your limit of one request per IP address!');
-    //   return;
-    // }
-
+  const generateAudioPodcast = async () => {
     const title = inputRef.current?.value;
     if (!title) {
       (inputRef.current as HTMLInputElement).focus();
@@ -256,6 +256,101 @@ export default function GetStarted() {
     }
   };
 
+  const generatePodcast = async () => {
+    const title = inputRef.current?.value;
+    if (!title) {
+      (inputRef.current as HTMLInputElement).focus();
+      return;
+    }
+
+    setAppState('init');
+    setLoading(true);
+    try {
+      const target = premade?.find((doc) => doc.id === talkingAvatar.id);
+      if (target) {
+        const targetName = target.name.toLowerCase();
+        const targetVoice = voices.find(
+          (voice: any) =>
+            voice.category === 'cloned' && voice.name === targetName
+        );
+        const targetVoiceId = targetVoice
+          ? targetVoice.voice_id
+          : 'TxGEqnHWrfWFTfGW9XjX';
+
+        let inputData;
+
+        if (artifactType === 'audio') {
+          inputData = {
+            inputText,
+            talkingAvatar,
+            audioTitle: title,
+            voiceId: targetVoiceId,
+            timestamp: Date.now(),
+            audioId: uuidv4(),
+            status: 'processing',
+            type: 'audio',
+          };
+        } else {
+          inputData = {
+            talkingAvatar,
+            title,
+            voiceId: targetVoiceId,
+            type: 'video',
+            inputText,
+          };
+        }
+
+        // check if the user is logged in or not and if not, redirect to login page
+        // but first save the input data in a cookie
+        const user = Cookies.get('allinUserCred');
+        if (!user) {
+          Cookies.set('allinTempData', JSON.stringify(inputData), {
+            expires: 1,
+          });
+          router.push('/login');
+        } else {
+          const userCred = JSON.parse(user);
+          const { uid } = userCred;
+
+          if (artifactType === 'audio') {
+            const _docData = { ...inputData, id: uid };
+            const _doc = doc(firestore, `AudioPodcasts/${inputData.audioId}`);
+            await setDoc(_doc, _docData);
+            router.push('/gallery');
+          }
+
+          if (artifactType === 'video') {
+            if (
+              (userInfo.paid && userInfo.generatedVideos >= 3) ||
+              (!userInfo.paid && userInfo.generatedVideos >= 1)
+            ) {
+              setLoading(false);
+              return;
+            }
+
+            const { talkingAvatar, title, voiceId, inputText } = inputData;
+            await generateVideo(
+              talkingAvatar,
+              inputText,
+              voiceId,
+              title as string,
+              uid,
+              true,
+              'video'
+            );
+            router.push('/gallery');
+          }
+        }
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+      throw error;
+    }
+  };
+
   const closeModal = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
     const modalContent = document.getElementById(
@@ -278,6 +373,7 @@ export default function GetStarted() {
     }
 
     getSavedIPs();
+
     (async () => {
       try {
         const ip = await axios.get('https://api.ipify.org');
@@ -369,7 +465,7 @@ export default function GetStarted() {
             />
             <button
               className='rounded-5xl w-full max-w-[300px] bg-blue-500 py-4 px-10 text-white'
-              onClick={generateAudio}
+              onClick={generateAudioPodcast}
             >
               Confirm
             </button>

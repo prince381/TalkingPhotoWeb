@@ -8,6 +8,8 @@ type UserContextType = {
   setUid: Dispatch<string>;
   paid: boolean;
   setPaid: Dispatch<boolean>;
+  generatedVideos: number;
+  setGeneratedVideos: Dispatch<number>;
 };
 
 export const UserContext = createContext<UserContextType>({
@@ -17,6 +19,8 @@ export const UserContext = createContext<UserContextType>({
   setUid: () => {},
   paid: false,
   setPaid: () => {},
+  generatedVideos: 0,
+  setGeneratedVideos: () => {},
 });
 
 type UserProviderProps = {
@@ -27,6 +31,7 @@ const UserProvider = ({ children }: UserProviderProps) => {
   const [email, setEmail] = useState('');
   const [paid, setPaid] = useState(false);
   const [uid, setUid] = useState('');
+  const [generatedVideos, setGeneratedVideos] = useState(0);
 
   const values = {
     email,
@@ -35,6 +40,8 @@ const UserProvider = ({ children }: UserProviderProps) => {
     setPaid,
     uid,
     setUid,
+    generatedVideos,
+    setGeneratedVideos,
   };
 
   return <UserContext.Provider value={values}>{children}</UserContext.Provider>;

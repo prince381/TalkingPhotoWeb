@@ -1,14 +1,19 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-console */
 import { isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
 import router from 'next/router';
 import React, { useEffect, useLayoutEffect } from 'react';
 
+import { UserContext } from '@/context/userContext';
+
 import { auth, firestore } from '../../../firebase/firebase';
 
 export default function Login() {
+  const userInfo = React.useContext(UserContext);
+
   useLayoutEffect(() => {
     const user = Cookies.get('userCredential');
     if (user) {
@@ -24,6 +29,22 @@ export default function Login() {
       const _doc = doc(firestore, `AudioPodcasts/${audioData.audioId}`);
       await setDoc(_doc, _docData);
       Cookies.remove('allinTempData');
+    }
+  }
+
+  // Get or set user's info in firestore
+  async function saveUserInfo(uid: string, email: string) {
+    const _doc = doc(firestore, `Users/${uid}`);
+    const _docSnap = await getDoc(_doc);
+    if (_docSnap.exists()) {
+      const { email, uid, paid, videos } = _docSnap.data();
+      userInfo.setEmail(email);
+      userInfo.setUid(uid);
+      userInfo.setPaid(paid);
+      userInfo.setGeneratedVideos(videos);
+    } else {
+      const _docData = { email, uid, paid: false, videos: 0 };
+      await setDoc(_doc, _docData);
     }
   }
 
@@ -49,7 +70,7 @@ export default function Login() {
                 'allinUserCred',
                 JSON.stringify({ email, displayName, uid })
               );
-              Cookies.set('allin_SSID', uid);
+              await saveUserInfo(uid, email as string);
               await saveTempDataToDb(uid);
               router.push('/gallery');
             })

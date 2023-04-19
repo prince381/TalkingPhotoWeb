@@ -339,7 +339,7 @@ textarea.outline-1 {
   width: 3px;
   height: 25px;
   margin-inline: 5px;
-  background: #2d2d2d;
+  background: #046dff;
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
   transform-style: preserve-3d;
   animation: stretch 0.5s ease-in infinite;

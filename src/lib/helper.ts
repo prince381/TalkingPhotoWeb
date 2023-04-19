@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import axios from 'axios';
 import {
@@ -5,6 +6,7 @@ import {
   deleteDoc,
   doc,
   DocumentData,
+  getDoc,
   getDocs,
   setDoc,
   updateDoc,
@@ -375,16 +377,17 @@ export async function fetchVoices() {
 // title
 
 export async function generateVideo(
-  avatar: AvatarType,
-  script: string,
+  talkingAvatar: AvatarType,
+  inputText: string,
   voiceId: string,
   title: string,
   id: string,
-  test: boolean
+  test: boolean,
+  type: 'video' | 'audio'
 ) {
   try {
-    const voiceBlob = await getVoiceOver(script, voiceId);
-    const audioRef = ref(storage, `tempAudio/${avatar.id}.mp3`);
+    const voiceBlob = await getVoiceOver(inputText, voiceId);
+    const audioRef = ref(storage, `tempAudio/${talkingAvatar.id}.mp3`);
     await uploadBytes(audioRef, voiceBlob);
     const audioUrl = await getDownloadURL(audioRef);
 
@@ -392,7 +395,7 @@ export async function generateVideo(
       background: '#000000',
       clips: [
         {
-          talking_photo_id: avatar.id,
+          talking_photo_id: talkingAvatar.id,
           talking_photo_style: 'normal',
           input_audio: audioUrl,
           scale: 1,
@@ -408,14 +411,21 @@ export async function generateVideo(
     const _doc = doc(firestore, `VideoPodcasts/${video_id}`);
     await setDoc(_doc, {
       id,
-      talkingAvatar: avatar,
+      talkingAvatar,
       status: 'processing',
       videoId: video_id,
       videoTitle: title,
-      inputText: script,
+      inputText,
+      audioRef: `tempAudio/${talkingAvatar.id}.mp3`,
       voiceId,
       timestamp,
+      type,
     });
+
+    const userDoc = doc(firestore, `Users/${id}`);
+    const _docSnap = await getDoc(userDoc);
+    const { videos } = _docSnap.data() as any;
+    await updateDoc(doc(firestore, 'Users', id), { videos: videos + 1 });
   } catch (error) {
     console.log(error);
   }
