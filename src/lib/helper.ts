@@ -6,6 +6,7 @@ import {
   doc,
   DocumentData,
   getDocs,
+  setDoc,
   updateDoc,
 } from 'firebase/firestore';
 import {
@@ -22,6 +23,12 @@ type OpenGraphType = {
   description: string;
   templateTitle?: string;
   logo?: string;
+};
+
+export type AvatarType = {
+  circle_image: string;
+  id: string;
+  image_url: string;
 };
 
 export type VideoPayloadType = {
@@ -46,11 +53,7 @@ export type VideoPayloadType = {
 export type VideoResponseType = {
   video_id: string;
   talking_photo_id: string;
-  talking_photo?: {
-    circle_image: string;
-    id: string;
-    image_url: string;
-  };
+  talking_photo?: AvatarType;
   voice_id: string;
   id?: string;
   timestamp?: Date;
@@ -62,11 +65,7 @@ export type VideoResponseType = {
 };
 
 export type VideoMetaData = {
-  talking_photo: {
-    circle_image: string;
-    id: string;
-    image_url: string;
-  };
+  talking_photo: AvatarType;
   timestamp: Date;
   video_id: string;
 };
@@ -74,17 +73,25 @@ export type VideoMetaData = {
 export type AudioData = {
   id?: string;
   url?: string;
-  talkingAvatar: {
-    circle_image: string;
-    id: string;
-    image_url: string;
-  };
+  talkingAvatar: AvatarType;
   audioTitle: string;
   inputText: string;
   voiceId: string;
   timestamp: Date;
   audioId: string;
   status: 'processing' | 'completed' | 'failed';
+};
+
+export type VideoData = {
+  id?: string;
+  url?: string;
+  talkingAvatar: AvatarType;
+  status: 'processing' | 'completed' | 'failed';
+  videoId: string;
+  videoTitle: string;
+  inputText: string;
+  voiceId: string;
+  timestamp: Date;
 };
 
 // !STARTERCONF This OG is generated from https://github.com/theodorusclarence/og
@@ -358,5 +365,58 @@ export async function fetchVoices() {
   } catch (error) {
     console.log(error);
     throw error;
+  }
+}
+
+// Values needed for video generation
+// talking avatar
+// text script
+// voice id
+// title
+
+export async function generateVideo(
+  avatar: AvatarType,
+  script: string,
+  voiceId: string,
+  title: string,
+  id: string,
+  test: boolean
+) {
+  try {
+    const voiceBlob = await getVoiceOver(script, voiceId);
+    const audioRef = ref(storage, `tempAudio/${avatar.id}.mp3`);
+    await uploadBytes(audioRef, voiceBlob);
+    const audioUrl = await getDownloadURL(audioRef);
+
+    const payload: VideoPayloadType = {
+      background: '#000000',
+      clips: [
+        {
+          talking_photo_id: avatar.id,
+          talking_photo_style: 'normal',
+          input_audio: audioUrl,
+          scale: 1,
+        },
+      ],
+      ratio: '16:9',
+      test: test,
+      version: 'v1alpha',
+    };
+
+    const response = await createVideo(payload);
+    const { video_id, timestamp } = response;
+    const _doc = doc(firestore, `VideoPodcasts/${video_id}`);
+    await setDoc(_doc, {
+      id,
+      talkingAvatar: avatar,
+      status: 'processing',
+      videoId: video_id,
+      videoTitle: title,
+      inputText: script,
+      voiceId,
+      timestamp,
+    });
+  } catch (error) {
+    console.log(error);
   }
 }

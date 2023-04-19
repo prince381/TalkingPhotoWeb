@@ -17,13 +17,13 @@ export default function Login() {
   }, []);
 
   async function saveTempDataToDb(uid: string) {
-    const tempData = Cookies.get('allinTempAudioData');
+    const tempData = Cookies.get('allinTempData');
     if (tempData) {
       const audioData = JSON.parse(tempData);
       const _docData = { ...audioData, id: uid };
       const _doc = doc(firestore, `AudioPodcasts/${audioData.audioId}`);
       await setDoc(_doc, _docData);
-      Cookies.remove('allinTempAudioData');
+      Cookies.remove('allinTempData');
     }
   }
 

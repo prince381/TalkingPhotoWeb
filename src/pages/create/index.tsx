@@ -8,12 +8,14 @@ import { doc, DocumentData, onSnapshot, setDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 
 import { fetchPhotos, fetchVoices, queryStore, uuidv4 } from '@/lib/helper';
 
 import LoadingScreen from '@/components/LoadingScreen';
+
+import { UserContext } from '@/context/userContext';
 
 import { firestore } from '../../../firebase/firebase';
 
@@ -47,6 +49,7 @@ type Photo = {
 export default function GetStarted() {
   // const [mode, setMode] = useState('dark');
   const router = useRouter();
+  const user = useContext(UserContext);
   const [selectedAvatar, setSelectedAvatar] = useState<Photo>({} as Photo);
   const [talkingAvatar, setTalkingAvatar] = useState<Photo>({} as Photo);
   const [videoPreview, selectVideoPreview] = useState<DocumentData>(
@@ -55,10 +58,11 @@ export default function GetStarted() {
 
   const [SSID, setSSID] = useState<string>('');
   const [inputText, setInputText] = useState('');
+  const [artifactTitle, setArtifactTitle] = useState('');
+  const [artifactType, setArtifactType] = useState('audio');
   const [videoName, setVideoName] = useState('');
   const [vidOnPlay, setVidOnPlay] = useState('');
   const [appState, setAppState] = useState('init');
-  const [audioTitle, setAudioTitle] = useState('');
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [ips, setIps] = useState<string[]>([]);
@@ -180,7 +184,6 @@ export default function GetStarted() {
   // is loaded
   useEffect(() => {
     if (vidType === 'premade' && premade && photos) {
-      // console.log(premade, photos);
       const avatars = photos.filter(
         (photo: Photo) => !photo.is_preset && savedPhotoIds.includes(photo.id)
       );
@@ -198,16 +201,6 @@ export default function GetStarted() {
   }, [premade, photos, untrained, vidType]);
 
   useEffect(() => {
-    if (photos) {
-      const avatars = photos.filter(
-        (photo: Photo) => !photo.is_preset && savedPhotoIds.includes(photo.id)
-      );
-      setTalkingAvatar(avatars[0]);
-    }
-  }, [photos]);
-
-  useEffect(() => {
-    // console.log(selectedAvatar);
     if (vidType === 'premade') {
       if (selectedAvatar.id && premade) {
         const video = premade.find(
@@ -223,11 +216,17 @@ export default function GetStarted() {
         selectVideoPreview(video);
       }
     }
-  }, [selectedAvatar]);
+  }, [selectedAvatar, vidType]);
 
-  // useEffect(() => {
-  //   console.log(voices)
-  // }, [voices])
+  // Select one talking avatar by default
+  useEffect(() => {
+    if (photos) {
+      const avatars = photos.filter(
+        (photo: Photo) => !photo.is_preset && savedPhotoIds.includes(photo.id)
+      );
+      setTalkingAvatar(avatars[0]);
+    }
+  }, [photos]);
 
   const getName = (id: string) => {
     if (premade) {
@@ -298,6 +297,7 @@ export default function GetStarted() {
           timestamp: Date.now(),
           audioId: uuidv4(),
           status: 'processing',
+          type: 'audio',
         };
 
         // console.log(audioData);
@@ -306,7 +306,7 @@ export default function GetStarted() {
         // but first save the input data in a cookie
         const user = Cookies.get('allinUserCred');
         if (!user) {
-          Cookies.set('allinTempAudioData', JSON.stringify(audioData), {
+          Cookies.set('allinTempData', JSON.stringify(audioData), {
             expires: 1,
           });
           router.push('/login');
@@ -359,11 +359,11 @@ export default function GetStarted() {
             </h2>
             <input
               ref={inputRef}
-              value={audioTitle}
+              value={artifactTitle}
               type='text'
               className='sub-card my-6 w-full rounded-lg border-none py-3 outline-none'
               onChange={() => {
-                setAudioTitle(inputRef.current?.value || '');
+                setArtifactTitle(inputRef.current?.value || '');
               }}
               autoFocus
               onFocus={(e) => e.target.select()}
@@ -465,28 +465,21 @@ export default function GetStarted() {
               </div>
               <div
                 className={`group relative mx-5 mb-7 h-full max-h-[300px] min-h-[300px] w-full max-w-[600px] md:mb-0 md:max-h-full ${
-                  videoPreview && videoPreview[videoName] && videoLoaded
+                  videoPreview && videoPreview[videoName]
                     ? 'border-2 border-blue-400'
                     : ''
                 } overflow-hidden rounded-lg transition-all`}
               >
                 {videoPreview && videoPreview[videoName] ? (
                   <video
-                    src={`${videoPreview[videoName]}#t=0.001`}
+                    src={videoPreview[videoName].src}
+                    poster={`/images/${videoPreview[videoName].poster}.png`}
                     id='premade-vid'
-                    className='h-full max-h-[300px] min-h-[300px] w-full max-w-[600px] object-cover md:max-h-full'
-                    preload='metadata'
-                    onCanPlayThrough={() => {
-                      console.log('video loaded ....');
-                      setVideoLoaded(true);
-                    }}
+                    className='h-full max-h-[300px] min-h-[300px] w-full max-w-[600px] object-cover md:max-h-[335px]'
                   ></video>
                 ) : (
-                  <div className='skeleton-load z-1 absolute left-0 top-0 h-full max-h-[300px] min-h-[300px] w-full md:max-h-full'></div>
+                  <div className='skeleton-load z-1 absolute left-0 top-0 h-full max-h-[300px] min-h-[300px] w-full md:max-h-[335px]'></div>
                 )}
-                {!videoLoaded ? (
-                  <div className='skeleton-load z-1 absolute left-0 top-0 h-full w-full md:max-h-full'></div>
-                ) : null}
                 {vidOnPlay !== 'premade-vid' ? (
                   <i
                     className='fas fa-play z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
@@ -663,7 +656,7 @@ export default function GetStarted() {
                                   const defaultText = `${getName(
                                     photo.id
                                   )}_${formatDate(new Date())}`;
-                                  setAudioTitle(defaultText);
+                                  setArtifactTitle(defaultText);
                                 }}
                               >
                                 <img
