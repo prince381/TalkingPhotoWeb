@@ -158,76 +158,6 @@ export default function GetStarted() {
     });
   };
 
-  useEffect(() => {
-    const ssid = Cookies.get('allin_SSID');
-
-    if (!ssid) {
-      const sessionId = uuidv4();
-      Cookies.set('allin_SSID', sessionId);
-      setSSID(sessionId);
-    } else {
-      setSSID(ssid);
-    }
-
-    getSavedIPs();
-    (async () => {
-      try {
-        const ip = await axios.get('https://api.ipify.org');
-        setUserIp(ip.data);
-      } catch (error) {
-        console.log(error);
-      }
-    })();
-  }, []);
-
-  // Automatically set the first video preview when all data
-  // is loaded
-  useEffect(() => {
-    if (vidType === 'premade' && premade && photos) {
-      const avatars = photos.filter(
-        (photo: Photo) => !photo.is_preset && savedPhotoIds.includes(photo.id)
-      );
-      if (selectedAvatar.id && videoName) return;
-      setSelectedAvatar(avatars[0]);
-      setVideoName(premadeVideos[0].id);
-    } else if (vidType === 'untrained' && untrained && photos) {
-      const avatars = photos.filter(
-        (photo: Photo) => !photo.is_preset && savedPhotoIds.includes(photo.id)
-      );
-      if (selectedAvatar.id && videoName) return;
-      setSelectedAvatar(avatars[0]);
-      setVideoName(untrainedVideos[0].id);
-    }
-  }, [premade, photos, untrained, vidType]);
-
-  useEffect(() => {
-    if (vidType === 'premade') {
-      if (selectedAvatar.id && premade) {
-        const video = premade.find(
-          (doc) => doc.id === selectedAvatar.id
-        ) as DocumentData;
-        selectVideoPreview(video);
-      }
-    } else if (vidType === 'untrained') {
-      if (selectedAvatar.id && untrained) {
-        const video = untrained.find(
-          (doc) => doc.id === selectedAvatar.id
-        ) as DocumentData;
-        selectVideoPreview(video);
-      }
-    }
-  }, [selectedAvatar, vidType]);
-
-  // Select one talking avatar by default
-  useEffect(() => {
-    if (photos) {
-      const avatars = photos.filter(
-        (photo: Photo) => !photo.is_preset && savedPhotoIds.includes(photo.id)
-      );
-      setTalkingAvatar(avatars[0]);
-    }
-  }, [photos]);
-
   const getName = (id: string) => {
     if (premade) {
       const doc = premade.find((doc) => doc.id === id);
@@ -300,8 +230,6 @@ export default function GetStarted() {
           type: 'audio',
         };
 
-        // console.log(audioData);
-
         // check if the user is logged in or not and if not, redirect to login page
         // but first save the input data in a cookie
         const user = Cookies.get('allinUserCred');
@@ -337,6 +265,76 @@ export default function GetStarted() {
       setAppState('init');
     }
   };
+
+  useEffect(() => {
+    const ssid = Cookies.get('allin_SSID');
+
+    if (!ssid) {
+      const sessionId = uuidv4();
+      Cookies.set('allin_SSID', sessionId);
+      setSSID(sessionId);
+    } else {
+      setSSID(ssid);
+    }
+
+    getSavedIPs();
+    (async () => {
+      try {
+        const ip = await axios.get('https://api.ipify.org');
+        setUserIp(ip.data);
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  }, []);
+
+  // Automatically set the first video preview when all data
+  // is loaded
+  useEffect(() => {
+    if (vidType === 'premade' && premade && photos) {
+      const avatars = photos.filter(
+        (photo: Photo) => !photo.is_preset && savedPhotoIds.includes(photo.id)
+      );
+      if (selectedAvatar.id && videoName) return;
+      setSelectedAvatar(avatars[0]);
+      setVideoName(premadeVideos[0].id);
+    } else if (vidType === 'untrained' && untrained && photos) {
+      const avatars = photos.filter(
+        (photo: Photo) => !photo.is_preset && savedPhotoIds.includes(photo.id)
+      );
+      if (selectedAvatar.id && videoName) return;
+      setSelectedAvatar(avatars[0]);
+      setVideoName(untrainedVideos[0].id);
+    }
+  }, [premade, photos, untrained, vidType]);
+
+  useEffect(() => {
+    if (vidType === 'premade') {
+      if (selectedAvatar.id && premade) {
+        const video = premade.find(
+          (doc) => doc.id === selectedAvatar.id
+        ) as DocumentData;
+        selectVideoPreview(video);
+      }
+    } else if (vidType === 'untrained') {
+      if (selectedAvatar.id && untrained) {
+        const video = untrained.find(
+          (doc) => doc.id === selectedAvatar.id
+        ) as DocumentData;
+        selectVideoPreview(video);
+      }
+    }
+  }, [selectedAvatar, vidType]);
+
+  // Select one talking avatar by default
+  useEffect(() => {
+    if (photos) {
+      const avatars = photos.filter(
+        (photo: Photo) => !photo.is_preset && savedPhotoIds.includes(photo.id)
+      );
+      setTalkingAvatar(avatars[0]);
+    }
+  }, [photos]);
 
   return (
     <>
