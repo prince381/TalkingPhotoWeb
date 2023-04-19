@@ -229,7 +229,7 @@ export default function Gallery() {
                 onClick={() => setShowAudio(true)}
               >
                 <span className='mr-2 inline-block'>Processing</span>
-                <i className='fas fa-video'></i>
+                <i className='fas fa-chevron-right'></i>
               </button>
             </div>
             {loading ? (
@@ -279,7 +279,7 @@ export default function Gallery() {
             <div className='mx-auto flex w-[90%] flex-col items-center py-5'>
               <div className='card relative flex w-full items-center justify-center'>
                 <i
-                  className='fas fa-chevron-right absolute left-0 text-xl lg:hidden'
+                  className='fas fa-chevron-left absolute left-0 text-xl lg:hidden'
                   onClick={() => setShowAudio(false)}
                 ></i>
                 <h2 className='text-base lg:text-xl'>Processing</h2>
@@ -303,7 +303,7 @@ export default function Gallery() {
                       />
                     );
                   })}
-                <button className='out-box flex h-max w-[250px] cursor-pointer flex-col items-center rounded-2xl p-10'>
+                <button className='out-box flex h-max max-w-[250px] cursor-pointer flex-col items-center rounded-2xl p-10'>
                   <Link href='/create' className='inline-block h-max w-full'>
                     <i className='fas fa-microphone text-4xl'></i>
                     <span className='mt-5 inline-block text-base'>
