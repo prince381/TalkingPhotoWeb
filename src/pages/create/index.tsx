@@ -198,6 +198,15 @@ export default function GetStarted() {
   }, [premade, photos, untrained, vidType]);
 
   useEffect(() => {
+    if (photos) {
+      const avatars = photos.filter(
+        (photo: Photo) => !photo.is_preset && savedPhotoIds.includes(photo.id)
+      );
+      setTalkingAvatar(avatars[0]);
+    }
+  }, [photos]);
+
+  useEffect(() => {
     // console.log(selectedAvatar);
     if (vidType === 'premade') {
       if (selectedAvatar.id && premade) {
@@ -609,7 +618,7 @@ export default function GetStarted() {
                 <textarea
                   name='text_script'
                   id='textScript'
-                  className='sub-card mb-1 h-[15vh] w-full resize-none rounded-md border-none outline-none focus:border-none focus:outline-none md:max-h-[200px] lg:h-[180px]'
+                  className='sub-card mb-1 h-[25vh] w-full resize-none rounded-md border-none outline-none focus:border-none focus:outline-none'
                   placeholder='Type or paste a paragraph here...'
                   ref={scriptRef}
                   value={inputText}
@@ -645,7 +654,7 @@ export default function GetStarted() {
                               <div
                                 className={`mb-2 cursor-pointer rounded-full bg-gray-300 ${
                                   talkingAvatar.id === photo.id
-                                    ? 'outline outline-4 outline-blue-900 grayscale-0'
+                                    ? 'border-2 border-blue-500 grayscale-0'
                                     : 'grayscale'
                                 }`}
                                 title={getName(photo.id)}
@@ -700,7 +709,7 @@ export default function GetStarted() {
                   }}
                   disabled={!inputText || !talkingAvatar.id}
                 >
-                  <span>Generate the video</span>
+                  <span>Generate the audio</span>
                 </button>
               </div>
             </div>

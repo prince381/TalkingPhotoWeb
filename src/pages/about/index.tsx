@@ -42,14 +42,17 @@ export default function Home() {
               <p className='text-center text-sm text-gray-800 md:text-base'>
                 Hey folks, it's Jason here! Let me introduce you to AllInPod.ai,
                 an incredible AI audio experience created by the talented team
-                at My Creativity Box. They heard our request on the All In
-                podcast to come up with AI-generated rap songs featuring us -
-                the Besties: Chamath, Sacks, and Friedberg. So, they designed
-                this cutting-edge platform that lets you create personalized rap
-                verses using our unique voices. Dive into this entertaining
-                audio adventure and have a blast crafting your own lyrical
-                masterpieces with AllInPod.ai. Give it a whirl, and unleash your
-                creativity!
+                at{' '}
+                <a href='https://mycreativitybox.com' className='text-blue-500'>
+                  My Creativity Box
+                </a>
+                . They heard our request on the All In podcast to come up with
+                AI-generated rap songs featuring us - the Besties: Chamath,
+                Sacks, and Friedberg. So, they designed this cutting-edge
+                platform that lets you create personalized rap verses using our
+                unique voices. Dive into this entertaining audio adventure and
+                have a blast crafting your own lyrical masterpieces with
+                AllInPod.ai. Give it a whirl, and unleash your creativity!
               </p>
             </div>
             <div className='group relative h-full min-h-[50vh] w-full md:h-[70vh] md:w-[50%]'>

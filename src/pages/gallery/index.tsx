@@ -20,6 +20,7 @@ export default function Gallery() {
   const [loading, setLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [audioOnPlay, setAudioOnPlay] = useState(false);
+  const [canPlay, setCanPlay] = useState(false);
   const [showAudio, setShowAudio] = useState(false);
   const [currentAudio, setCurrentAudio] = useState<AudioData | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -48,7 +49,10 @@ export default function Gallery() {
     const audio = document.getElementById('audioonplay') as HTMLAudioElement;
     audio.src = src;
     setAudioOnPlay(true);
-    audio.oncanplaythrough = () => audio.play();
+    audio.oncanplaythrough = () => {
+      audio.play();
+      setCanPlay(true);
+    };
   };
 
   const removeAudio = async (id: string) => {
@@ -72,6 +76,7 @@ export default function Gallery() {
     audio.src = '';
     setAudioOnPlay(false);
     setCurrentAudio(null);
+    setCanPlay(false);
     // console.log(target);
   };
 
@@ -193,7 +198,20 @@ export default function Gallery() {
                 </li>
               </ul>
             </div>
-            <audio id='audioonplay' className='mb-6 w-full' controls></audio>
+            <audio
+              id='audioonplay'
+              className={`relative mb-6 w-full ${
+                canPlay ? 'opacity-100' : 'opacity-50'
+              }`}
+              controls
+            ></audio>
+            {!canPlay && (
+              <img
+                src='/images/loading.gif'
+                alt='loader'
+                className='absolute left-[50%] top-[50%] z-10 h-12 w-12 -translate-x-[50%] -translate-y-[20%]'
+              />
+            )}
             <p className='text-sm text-black md:text-base'>
               Uploaded on{' '}
               {new Date(currentAudio?.timestamp as Date).toLocaleString()}
@@ -236,8 +254,10 @@ export default function Gallery() {
                         <AudioCard
                           track={track}
                           canPlay={track.status === 'completed'}
-                          canCopy={false}
-                          canShare={false}
+                          canCopy={true}
+                          copyHandler={copyAudioLink}
+                          canShare={true}
+                          shareHandler={shareToTwitter}
                           setCurrentAudio={setCurrentAudio}
                           playAudio={playCurrentAudio}
                           removeAudio={removeAudio}
@@ -271,7 +291,9 @@ export default function Gallery() {
                         track={track}
                         canPlay={track.status === 'completed'}
                         canCopy={false}
+                        copyHandler={copyAudioLink}
                         canShare={false}
+                        shareHandler={shareToTwitter}
                         setCurrentAudio={setCurrentAudio}
                         playAudio={playCurrentAudio}
                         removeAudio={removeAudio}
@@ -300,7 +322,9 @@ const AudioCard = ({
   track,
   canPlay,
   canCopy,
+  copyHandler,
   canShare,
+  shareHandler,
   setCurrentAudio,
   playAudio,
   removeAudio,
@@ -308,7 +332,9 @@ const AudioCard = ({
   track: AudioData;
   canPlay: boolean;
   canCopy?: boolean;
+  copyHandler?: (id: string) => void;
   canShare?: boolean;
+  shareHandler?: (id: string) => void;
   setCurrentAudio?: React.Dispatch<any>;
   playAudio: (src: string) => void;
   removeAudio: (id: string) => void;
@@ -318,52 +344,6 @@ const AudioCard = ({
   return (
     <div className='video-card flex flex-col items-center'>
       <div className='card group relative h-max w-full max-w-[300px] rounded-md py-3 transition-all hover:shadow-lg'>
-        <div
-          className={`icons flex items-center justify-center px-3 group-hover:visible group-hover:opacity-100 lg:invisible lg:opacity-0 ${
-            track.status === 'completed'
-              ? 'visible opacity-100'
-              : 'invisible opacity-0'
-          }`}
-        >
-          {canShare && track.status !== 'failed' && (
-            <button
-              className='mr-2.5 flex h-[30px] w-[30px] items-center justify-center rounded-full bg-blue-500 p-2 text-white'
-              title='Download audio'
-            >
-              <i className='fab fa-twitter'></i>
-            </button>
-          )}
-          {canCopy && track.status !== 'failed' && (
-            <button
-              className='mr-2.5 flex h-[30px] w-[30px] items-center justify-center rounded-full bg-blue-500 p-2 text-white'
-              onClick={() => {
-                navigator.clipboard.writeText(track.url as string);
-                setCopied(true);
-                setTimeout(() => {
-                  setCopied(false);
-                }, 2000);
-              }}
-              title='Copy video url'
-              disabled={track.status === 'processing'}
-            >
-              {copied && (
-                <span className='absolute -top-[22px] text-xs text-blue-500'>
-                  Copied!
-                </span>
-              )}
-              <i className='fas fa-copy'></i>
-            </button>
-          )}
-          {track.status === 'failed' ? (
-            <button
-              className='flex h-[30px] w-[30px] items-center justify-center rounded-full bg-blue-500 p-2 text-white'
-              title='Delete audio'
-              onClick={() => removeAudio(track.audioId as string)}
-            >
-              <i className='fas fa-trash text-white'></i>
-            </button>
-          ) : null}
-        </div>
         <div
           className='relative my-3 h-[150px] max-h-[150px] w-full cursor-pointer bg-black'
           onClick={() => {
@@ -382,19 +362,70 @@ const AudioCard = ({
             <i className='fas fa-play invisible absolute top-[50%] left-[50%] z-50 -translate-x-[50%] -translate-y-[50%] text-4xl text-white opacity-0 transition-all group-hover:visible group-hover:opacity-100'></i>
           ) : null}
         </div>
-        <div
-          className={`mx-3 w-max py-1 px-2 ${
-            track.status === 'completed'
-              ? 'bg-blue-500'
-              : track.status === 'failed'
-              ? 'bg-red-500'
-              : 'bg-gray-300'
-          } flex items-center rounded-lg text-sm text-white`}
-        >
-          {track.status === 'completed' ? (
-            <i className='fas fa-volume-up mr-2'></i>
-          ) : null}
-          {track.status}
+        <div className='flex justify-between'>
+          <div
+            className={`mx-3 w-max py-1 px-2 ${
+              track.status === 'completed'
+                ? 'bg-blue-500'
+                : track.status === 'failed'
+                ? 'bg-red-500'
+                : 'bg-gray-300'
+            } flex items-center rounded-lg text-sm text-white`}
+          >
+            {track.status === 'completed' ? (
+              <i className='fas fa-volume-up mr-2'></i>
+            ) : null}
+            {track.status}
+          </div>
+          <div
+            className={`icons flex w-max items-center justify-center px-3 ${
+              track.status === 'completed'
+                ? 'visible opacity-100'
+                : 'invisible opacity-0'
+            }`}
+          >
+            {canShare && track.status !== 'failed' && (
+              <button
+                className='flex cursor-pointer items-center justify-center text-blue-500'
+                title='Download audio'
+                onClick={() => {
+                  if (shareHandler) shareHandler(track.audioId as string);
+                }}
+              >
+                <i className='fab fa-twitter text-base'></i>
+              </button>
+            )}
+            {canCopy && track.status !== 'failed' && (
+              <button
+                className='relative mx-3 flex cursor-pointer items-center justify-center text-blue-500'
+                onClick={() => {
+                  if (copyHandler) copyHandler(track.audioId as string);
+                  setCopied(true);
+                  setTimeout(() => {
+                    setCopied(false);
+                  }, 2000);
+                }}
+                title='Copy video url'
+                disabled={track.status === 'processing'}
+              >
+                {copied && (
+                  <span className='absolute -top-4 cursor-pointer text-sm text-blue-400'>
+                    Copied!
+                  </span>
+                )}
+                <i className='fas fa-copy text-base'></i>
+              </button>
+            )}
+            {track.status === 'failed' ? (
+              <button
+                className='flex items-center justify-center text-base text-red-500'
+                title='Delete audio'
+                onClick={() => removeAudio(track.audioId as string)}
+              >
+                <i className='fas fa-trash'></i>
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
       <div className='mx-auto flex flex-col items-center py-2.5'>
