@@ -48,6 +48,7 @@ export default function Gallery() {
   const playCurrentAudio = (src: string) => {
     const audio = document.getElementById('audioonplay') as HTMLAudioElement;
     audio.src = src;
+    audio.load();
     setAudioOnPlay(true);
     audio.oncanplaythrough = () => {
       audio.play();
@@ -204,12 +205,13 @@ export default function Gallery() {
                 canPlay ? 'opacity-100' : 'opacity-50'
               }`}
               controls
+              preload='auto'
             ></audio>
             {!canPlay && (
               <img
                 src='/images/loading.gif'
                 alt='loader'
-                className='absolute left-[50%] top-[50%] z-10 h-12 w-12 -translate-x-[50%] -translate-y-[20%]'
+                className='absolute left-[50%] top-[50%] z-10 h-12 w-12 -translate-x-[50%] md:-translate-y-[20%]'
               />
             )}
             <p className='text-sm text-black md:text-base'>
