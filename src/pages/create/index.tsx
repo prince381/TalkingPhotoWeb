@@ -3,12 +3,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable no-console */
+import { loadStripe } from '@stripe/stripe-js';
 import axios from 'axios';
 import { doc, DocumentData, onSnapshot, setDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 
 import {
@@ -20,8 +21,6 @@ import {
 } from '@/lib/helper';
 
 import LoadingScreen from '@/components/LoadingScreen';
-
-import { UserContext } from '@/context/userContext';
 
 import { firestore } from '../../../firebase/firebase';
 
@@ -52,17 +51,30 @@ type Photo = {
   is_preset?: boolean;
 };
 
+type UserInfo = {
+  email: string;
+  uid: string;
+  paid: boolean;
+  paymentIntentId?: string;
+  videos: number;
+};
+
 export default function GetStarted() {
   // const [mode, setMode] = useState('dark');
   const router = useRouter();
-  const userInfo = useContext(UserContext);
   const [selectedAvatar, setSelectedAvatar] = useState<Photo>({} as Photo);
   const [talkingAvatar, setTalkingAvatar] = useState<Photo>({} as Photo);
   const [videoPreview, selectVideoPreview] = useState<DocumentData>(
     {} as DocumentData
   );
 
-  const [SSID, setSSID] = useState<string>('');
+  const [currentUserInfo, setCurrentUserInfo] = useState<UserInfo>({
+    email: '',
+    uid: '',
+    paid: false,
+    videos: 0,
+  });
+
   const [inputText, setInputText] = useState('');
   const [artifactTitle, setArtifactTitle] = useState('');
   const [artifactType, setArtifactType] = useState<'audio' | 'video'>('audio');
@@ -71,8 +83,7 @@ export default function GetStarted() {
   const [appState, setAppState] = useState('init');
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [ips, setIps] = useState<string[]>([]);
-  const [userIp, setUserIp] = useState('');
+  const [subscribing, setSubscribing] = useState(false);
   const [vidType, setVidType] = useState('premade');
 
   const scriptRef = React.useRef<HTMLTextAreaElement>(null);
@@ -139,29 +150,24 @@ export default function GetStarted() {
     },
   ];
 
-  const { data: photos, isLoading: loadingPhotos } = useQuery(
-    'photos',
-    fetchPhotos
-  );
-
-  const { data: premade, isLoading: loadingPremade } = useQuery(
-    'premade',
-    getPremadeVideos
-  );
-
-  const { data: untrained, isLoading: loadingUntrained } = useQuery(
-    'untrained',
-    getUntrainedVideos
-  );
-
+  const { data: photos } = useQuery('photos', fetchPhotos);
+  const { data: premade } = useQuery('premade', getPremadeVideos);
+  const { data: untrained } = useQuery('untrained', getUntrainedVideos);
   const { data: voices } = useQuery('voices', fetchVoices);
 
-  const getSavedIPs = () => {
-    const ipRef = doc(firestore, 'metadata', 'talkingphoto');
-    onSnapshot(ipRef, (snapshot) => {
-      const data = snapshot.data() as DocumentData;
-      setIps([...data.ip_addresses] as string[]);
-    });
+  const getSavedUser = () => {
+    const userCred = Cookies.get('allinUserCred');
+
+    if (userCred) {
+      const user = JSON.parse(userCred);
+      const userRef = doc(firestore, 'Users', user.uid);
+      onSnapshot(userRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const { email, paid, uid, videos } = snapshot.data() as DocumentData;
+          setCurrentUserInfo({ email, paid, uid, videos });
+        }
+      });
+    }
   };
 
   const getName = (id: string) => {
@@ -197,63 +203,6 @@ export default function GetStarted() {
         video.currentTime = 0.0;
       }
     });
-  };
-
-  const generateAudioPodcast = async () => {
-    const title = inputRef.current?.value;
-    if (!title) {
-      (inputRef.current as HTMLInputElement).focus();
-      return;
-    }
-
-    setAppState('init');
-    setLoading(true);
-    try {
-      const target = premade?.find((doc) => doc.id === talkingAvatar.id);
-      if (target) {
-        const targetName = target.name.toLowerCase();
-        const targetVoice = voices.find(
-          (voice: any) =>
-            voice.category === 'cloned' && voice.name === targetName
-        );
-        const targetVoiceId = targetVoice
-          ? targetVoice.voice_id
-          : 'TxGEqnHWrfWFTfGW9XjX';
-        const audioData = {
-          inputText,
-          talkingAvatar,
-          audioTitle: title,
-          voiceId: targetVoiceId,
-          timestamp: Date.now(),
-          audioId: uuidv4(),
-          status: 'processing',
-          type: 'audio',
-        };
-
-        // check if the user is logged in or not and if not, redirect to login page
-        // but first save the input data in a cookie
-        const user = Cookies.get('allinUserCred');
-        if (!user) {
-          Cookies.set('allinTempData', JSON.stringify(audioData), {
-            expires: 1,
-          });
-          router.push('/login');
-        } else {
-          const userCred = JSON.parse(user);
-          const { uid } = userCred;
-          const _docData = { ...audioData, id: uid };
-          const _doc = doc(firestore, `AudioPodcasts/${audioData.audioId}`);
-          await setDoc(_doc, _docData);
-          router.push('/gallery');
-        }
-      } else {
-        setLoading(false);
-      }
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
-      throw error;
-    }
   };
 
   const generatePodcast = async () => {
@@ -297,6 +246,7 @@ export default function GetStarted() {
             voiceId: targetVoiceId,
             type: 'video',
             inputText,
+            test: currentUserInfo.paid,
           };
         }
 
@@ -321,21 +271,22 @@ export default function GetStarted() {
 
           if (artifactType === 'video') {
             if (
-              (userInfo.paid && userInfo.generatedVideos >= 3) ||
-              (!userInfo.paid && userInfo.generatedVideos >= 1)
+              (currentUserInfo.paid && currentUserInfo.videos >= 3) ||
+              (!currentUserInfo.paid && currentUserInfo.videos >= 1)
             ) {
               setLoading(false);
               return;
             }
 
-            const { talkingAvatar, title, voiceId, inputText } = inputData;
+            const { talkingAvatar, title, voiceId, inputText, test } =
+              inputData;
             await generateVideo(
               talkingAvatar,
               inputText,
               voiceId,
               title as string,
               uid,
-              true,
+              test as boolean,
               'video'
             );
             router.push('/gallery');
@@ -361,28 +312,39 @@ export default function GetStarted() {
     }
   };
 
-  useEffect(() => {
-    const ssid = Cookies.get('allin_SSID');
+  const toCheckout = async () => {
+    const url = '/api/checkout_sessions';
 
-    if (!ssid) {
-      const sessionId = uuidv4();
-      Cookies.set('allin_SSID', sessionId);
-      setSSID(sessionId);
-    } else {
-      setSSID(ssid);
-    }
+    try {
+      const { data: response } = await axios.post(url, {
+        priceId: process.env.NEXT_PUBLIC_PRICE_ID,
+      });
+      console.log(response);
 
-    getSavedIPs();
+      const stripeKey = process.env
+        .NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string;
+      const stripe = await loadStripe(stripeKey);
+      if (stripe) {
+        const { error } = await stripe.redirectToCheckout({
+          sessionId: response.session.id,
+        });
 
-    (async () => {
-      try {
-        const ip = await axios.get('https://api.ipify.org');
-        setUserIp(ip.data);
-      } catch (error) {
-        console.log(error);
+        if (error) throw error;
+      } else {
+        console.log('Stripe is not loaded');
       }
-    })();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getSavedUser();
   }, []);
+
+  // useEffect(() => {
+  //   console.log('userInfo', currentUserInfo);
+  // }, [currentUserInfo]);
 
   // Automatically set the first video preview when all data
   // is loaded
@@ -448,14 +410,14 @@ export default function GetStarted() {
             id='modal-content'
             className='modal-card flex h-max w-[90%] max-w-[700px] flex-col items-center rounded-lg p-5 shadow-md lg:py-8 lg:px-12'
           >
-            <h2 className='text-lg font-bold md:self-start lg:text-xl xxl:text-2xl'>
-              What should we title your audio?
+            <h2 className='text-base font-bold md:self-start lg:text-lg xxl:text-xl'>
+              What should we title your podcast?
             </h2>
             <input
               ref={inputRef}
               value={artifactTitle}
               type='text'
-              className='sub-card my-6 w-full rounded-lg border-none py-3 outline-none'
+              className='sub-card mb-6 mt-2 w-full rounded-lg border-none py-3 outline-none'
               onChange={() => {
                 setArtifactTitle(inputRef.current?.value || '');
               }}
@@ -463,11 +425,71 @@ export default function GetStarted() {
               onFocus={(e) => e.target.select()}
               required
             />
+            <div className='mb-3 h-max w-full'>
+              <label className='flex items-center text-base font-bold lg:text-lg xxl:text-xl'>
+                Choose the type:
+              </label>
+              <select
+                name='artifactType'
+                id='artifactType'
+                className='sub-card mt-2 w-full rounded-lg border-none py-3 outline-none'
+                defaultValue='audio'
+                onChange={(e) => {
+                  setArtifactType(e.target.value as 'audio' | 'video');
+                }}
+              >
+                <option value='audio'>Audio</option>
+                <option value='video'>Video</option>
+              </select>
+            </div>
+            {artifactType === 'video' &&
+            !currentUserInfo.paid &&
+            currentUserInfo.videos >= 1 ? (
+              <div className='mx-auto w-[90%] text-center'>
+                <p className='text-sm text-blue-500'>
+                  You have reached the limit of 1 video per free user account.
+                  Subscribe for just <b>$10</b> to continue generating your
+                  video podcasts.
+                </p>
+              </div>
+            ) : artifactType === 'video' &&
+              currentUserInfo.paid &&
+              currentUserInfo.videos >= 3 ? (
+              <div className='mx-auto w-[90%] text-center'>
+                <p className='text-sm text-blue-500'>
+                  You have reached the limit of 3 videos per paid user account.
+                  Please renew your subscription if you need more.
+                </p>
+              </div>
+            ) : null}
             <button
-              className='rounded-5xl w-full max-w-[300px] bg-blue-500 py-4 px-10 text-white'
-              onClick={generateAudioPodcast}
+              className='rounded-5xl mt-5 w-full max-w-[300px] bg-blue-500 py-4 px-10 text-white'
+              onClick={() => {
+                if (
+                  (artifactType === 'video' &&
+                    !currentUserInfo.paid &&
+                    currentUserInfo.videos >= 1) ||
+                  (artifactType === 'video' &&
+                    currentUserInfo.paid &&
+                    currentUserInfo.videos >= 3)
+                ) {
+                  setSubscribing(true);
+                  toCheckout();
+                } else {
+                  generatePodcast();
+                }
+              }}
             >
-              Confirm
+              {subscribing
+                ? 'Please wait...'
+                : (artifactType === 'video' &&
+                    !currentUserInfo.paid &&
+                    currentUserInfo.videos >= 1) ||
+                  (artifactType === 'video' &&
+                    currentUserInfo.paid &&
+                    currentUserInfo.videos >= 3)
+                ? 'Subscribe'
+                : 'Submit'}
             </button>
           </div>
         </div>
@@ -806,67 +828,3 @@ export default function GetStarted() {
     </>
   );
 }
-
-//====================================================================================
-//                        COMMENTED OUT CODE FOR FUTURE USE
-//====================================================================================
-// const sendVideo = async (avatar_id: string, audio: string, title: string) => {
-//   if (!avatar_id || !audio || !title) return;
-//   const payload: VideoPayloadType = {
-//     background: '#000000',
-//     clips: [
-//       {
-//         talking_photo_id: avatar_id,
-//         talking_photo_style: 'normal',
-//         input_audio: audio,
-//         scale: 1,
-//       },
-//     ],
-//     ratio: '16:9',
-//     test: false,
-//     version: 'v1alpha',
-//   };
-
-//   try {
-//     const response = await createVideo(payload);
-//     const { talking_photo_id, video_id, timestamp } = response;
-//     const avatar = photos.find(
-//       (photo: Photo) => photo.id === talking_photo_id
-//     );
-
-//     if (avatar) {
-//       const _doc = doc(firestore, `TalkingPhotos/${video_id}`);
-//       await setDoc(_doc, {
-//         talking_photo: avatar,
-//         status: 'processing',
-//         timestamp,
-//         video_id,
-//         title,
-//       });
-
-// if (!ips.includes(userIp)) {
-//   const ipRef = doc(firestore, 'metadata', 'talkingphoto');
-//   await setDoc(ipRef, {
-//     ip_addresses: [...ips, userIp],
-//   });
-// }
-
-//       router.push(
-//         {
-//           pathname: '/gallery',
-//           query: {
-//             storageRef: 'generatedPodcasts',
-//             file: `${talkingAvatar.id}.mp3`,
-//           },
-//         },
-//         '/gallery'
-//       );
-//     } else {
-//       setLoading(false);
-//       throw new Error('Something went wrong while saving data to firestore');
-//     }
-//   } catch (error) {
-//     console.log(error);
-//     throw error;
-//   }
-// };

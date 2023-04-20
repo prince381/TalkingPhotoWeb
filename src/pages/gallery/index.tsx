@@ -8,21 +8,31 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
-import { AudioData, deleteDocument, generateAudio } from '@/lib/helper';
+import {
+  AudioData,
+  deleteDocument,
+  fetchVideoStatus,
+  generateAudio,
+  VideoData,
+} from '@/lib/helper';
 
+import AudioCard from '@/components/AudioCard';
 import Loader from '@/components/Loader';
+import VideoCard from '@/components/VideoCard';
 
 import { firestore } from '../../../firebase/firebase';
 
 export default function Gallery() {
   const router = useRouter();
-  const [tracks, setTracks] = useState<AudioData[]>([]);
+  const [tracks, setTracks] = useState<(AudioData & VideoData)[]>([]);
   const [loading, setLoading] = useState(true);
   const [isError, setIsError] = useState(false);
-  const [audioOnPlay, setAudioOnPlay] = useState(false);
+  const [mediaOnPlay, setMediaOnPlay] = useState(false);
   const [canPlay, setCanPlay] = useState(false);
   const [showAudio, setShowAudio] = useState(false);
-  const [currentAudio, setCurrentAudio] = useState<AudioData | null>(null);
+  const [currentMedia, setCurrentMedia] = useState<
+    (AudioData & VideoData) | null
+  >(null);
   const [linkCopied, setLinkCopied] = useState(false);
 
   const getSavedPodcasts = () => {
@@ -34,10 +44,19 @@ export default function Gallery() {
       onSnapshot(collectionRef, (snapshot) => {
         const data = snapshot.docs.map((doc) => {
           const docData = doc.data();
-          return { ...docData };
+          // check and add a type for the already saved podcasts
+          if (docData.type) return { ...docData };
+          return { ...docData, type: 'audio' };
         });
-        if (data.length > 0) setTracks(data as AudioData[]);
-        else setLoading(false);
+        if (data.length > 0) {
+          // sort by timestamp
+          const sortedData = data.sort((a: any, b: any) => {
+            const aDate = new Date(a.timestamp);
+            const bDate = new Date(b.timestamp);
+            return bDate.getTime() - aDate.getTime();
+          });
+          setTracks(sortedData as (AudioData & VideoData)[]);
+        } else setLoading(false);
       });
     } catch (error) {
       console.log('Something went wrong while fetching saved podcasts:', error);
@@ -45,57 +64,76 @@ export default function Gallery() {
     }
   };
 
-  const playCurrentAudio = (src: string) => {
-    const audio = document.getElementById('audioonplay') as HTMLAudioElement;
-    audio.src = src;
-    audio.load();
-    setAudioOnPlay(true);
-    audio.oncanplaythrough = () => {
-      audio.play();
+  const playCurrentMedia = (src: string, type: 'audio' | 'video') => {
+    let media: HTMLAudioElement | HTMLVideoElement;
+    if (type === 'audio') {
+      media = document.getElementById('audioonplay') as HTMLAudioElement;
+    } else {
+      media = document.getElementById('videoonplay') as HTMLVideoElement;
+    }
+
+    media.src = src;
+    media.load();
+    setMediaOnPlay(true);
+
+    media.oncanplaythrough = () => {
       setCanPlay(true);
+      // media.play();
     };
   };
 
-  const removeAudio = async (id: string) => {
+  const removeMedia = async (id: string, type: 'audio' | 'video') => {
     try {
-      const newTracks = [...tracks.filter((track) => track.audioId !== id)];
+      const newTracks = [
+        ...tracks.filter((track) => {
+          if (type === 'audio') return track.audioId !== id;
+          return track.videoId !== id;
+        }),
+      ];
       setTracks(newTracks);
-      await deleteDocument('AudioPodcasts', id);
+      if (type === 'audio') await deleteDocument('AudioPodcasts', id);
+      else await deleteDocument('VideoPodcasts', id);
     } catch (error) {
       console.log('Something went wrong while deleting audio:', error);
     }
   };
 
-  const closeAudioModal = (e: React.MouseEvent<HTMLDivElement>) => {
-    const audio = document.getElementById('audioonplay') as HTMLAudioElement;
-    const modal = document.getElementById('audioModal') as HTMLDivElement;
+  const closeMediaModal = (e: React.MouseEvent<HTMLDivElement>) => {
+    let media: HTMLAudioElement | HTMLVideoElement;
+    if (currentMedia?.type === 'audio')
+      media = document.getElementById('audioonplay') as HTMLAudioElement;
+    else media = document.getElementById('videoonplay') as HTMLVideoElement;
+
+    const modal = document.getElementById('mediaModal') as HTMLDivElement;
     const target = e.target as HTMLElement;
-    const content = modal.querySelector('#audioContainer') as HTMLDivElement;
+    const content = modal.querySelector('#mediaContainer') as HTMLDivElement;
+
     if (content.contains(target) && !target.classList.contains('fa-times'))
       return;
-    audio.pause();
-    audio.src = '';
-    setAudioOnPlay(false);
-    setCurrentAudio(null);
+
+    media.pause();
+    media.src = '';
+    setMediaOnPlay(false);
+    setCurrentMedia(null);
     setCanPlay(false);
     // console.log(target);
   };
 
-  const createTwitterShareContent = (id: string) => {
+  const createTwitterShareContent = (id: string, type: 'audio' | 'video') => {
     const hashtags =
       'allinpodcast,davidsacks,jasoncalacanis,chamathpalihapitiya,davidfriedberg';
     const text = 'AI made All-in podcast Besties talks';
-    const url = `${window.location.href}?track=${id}`;
+    const url = `${window.location.href}?track=${id}&type=${type}`;
     return `https://twitter.com/intent/tweet?text=${text}&url=${url}&hashtags=${hashtags}`;
   };
 
-  const shareToTwitter = (id: string) => {
-    const url = createTwitterShareContent(id);
+  const shareToTwitter = (id: string, type: 'audio' | 'video') => {
+    const url = createTwitterShareContent(id, type);
     window.open(url, '_blank');
   };
 
-  const copyAudioLink = (id: string) => {
-    const url = `${window.location.href}?track=${id}`;
+  const copyMediaLink = (id: string, type: 'audio' | 'video') => {
+    const url = `${window.location.href}?track=${id}&type=${type}`;
     navigator.clipboard.writeText(url);
     setLinkCopied(true);
     setTimeout(() => {
@@ -116,7 +154,8 @@ export default function Gallery() {
           );
           if (unprocessedTracks.length > 0) {
             const tasks = unprocessedTracks.map(async (track) => {
-              return await generateAudio(track);
+              if (track.type === 'audio') return await generateAudio(track);
+              return await fetchVideoStatus(track.videoId, track.test || true);
               // return video;
             });
             await Promise.all(tasks);
@@ -128,13 +167,21 @@ export default function Gallery() {
       }
     })();
 
-    if (router.query.track) {
+    if (router.query.track && router.query.type) {
       const id = router.query.track as string;
-      const track = tracks.find((track) => track.audioId === id);
+      const type = router.query.type as string;
+      console.log('id', id, 'type', type);
+      const track = tracks.find((track) => {
+        if (type === 'audio') return track.audioId === id;
+        return track.videoId === id;
+      });
       if (track) {
-        setCurrentAudio(track);
-        setAudioOnPlay(true);
-        playCurrentAudio(track.url as string);
+        console.log('current track', track);
+        setCurrentMedia(track);
+        setMediaOnPlay(true);
+        setTimeout(() => {
+          playCurrentMedia(track.url as string, type as 'audio' | 'video');
+        }, 500);
       }
     }
   }, [tracks]);
@@ -147,35 +194,46 @@ export default function Gallery() {
   return (
     <>
       {/* <LoadingScreen loading={loading} /> */}
-      <div className={`h-max w-screen ${audioOnPlay ? 'fixed z-10' : ''}`}>
+      <div className={`h-max w-screen ${mediaOnPlay ? 'fixed z-10' : ''}`}>
         <div
-          id='audioModal'
+          id='mediaModal'
           className={`fixed left-0 top-0 z-[1000] flex h-screen w-screen items-center justify-center backdrop-blur-sm transition-all duration-300 ${
-            audioOnPlay
+            mediaOnPlay
               ? 'pointer-events-auto visible opacity-100'
               : 'pointer-events-none invisible opacity-0'
           }`}
-          onClick={closeAudioModal}
+          onClick={closeMediaModal}
         >
           <div
-            id='audioContainer'
+            id='mediaContainer'
             className='relative h-max w-[90%] max-w-[900px] rounded-2xl bg-white p-5 shadow-md md:px-8'
           >
             <i
               className='fas fa-times absolute right-3 top-2 cursor-pointer text-xl text-black xxs:right-5 xxs:top-4 md:text-2xl'
-              onClick={closeAudioModal}
+              onClick={closeMediaModal}
             ></i>
             <div className='mb-8 mt-6 flex flex-col-reverse items-center justify-between xxs:mt-2 xxs:justify-start xs:flex-row'>
               <h2 className='mt-3 max-w-[400px] truncate text-base text-black xs:mt-0 md:text-lg xl:text-xl'>
-                {currentAudio?.audioTitle || 'Untitled Audio'}
+                {(currentMedia?.type === 'audio'
+                  ? currentMedia.audioTitle
+                  : currentMedia?.videoTitle) || 'Untitled Podcast'}
               </h2>
               <ul className='flex items-center justify-between xxs:ml-6'>
                 <li className='mr-3 xxs:mr-5'>
                   <button
                     className='flex h-[35px] w-[35px] cursor-pointer items-center justify-center rounded-full bg-blue-500 p-2 text-white shadow-md sm:h-[40px] sm:w-[40px]'
-                    onClick={() =>
-                      shareToTwitter(currentAudio?.audioId as string)
-                    }
+                    onClick={() => {
+                      if (currentMedia?.type === 'audio')
+                        shareToTwitter(
+                          currentMedia?.audioId as string,
+                          'audio'
+                        );
+                      else
+                        shareToTwitter(
+                          currentMedia?.videoId as string,
+                          'video'
+                        );
+                    }}
                   >
                     <i className='fab fa-twitter text-sm sm:text-base md:text-lg'></i>
                   </button>
@@ -190,23 +248,39 @@ export default function Gallery() {
                   </span>
                   <button
                     className='flex h-[35px] w-[35px] cursor-pointer items-center justify-center rounded-full bg-blue-500 p-2 text-white shadow-md sm:h-[40px] sm:w-[40px]'
-                    onClick={() =>
-                      copyAudioLink(currentAudio?.audioId as string)
-                    }
+                    onClick={() => {
+                      if (currentMedia?.type === 'audio')
+                        copyMediaLink(currentMedia?.audioId as string, 'audio');
+                      else
+                        copyMediaLink(currentMedia?.videoId as string, 'video');
+                    }}
                   >
                     <i className='fas fa-copy text-sm sm:text-base md:text-lg'></i>
                   </button>
                 </li>
               </ul>
             </div>
-            <audio
-              id='audioonplay'
-              className={`relative mb-6 w-full ${
-                canPlay ? 'opacity-100' : 'opacity-50'
-              }`}
-              controls
-              preload='auto'
-            ></audio>
+            {currentMedia?.type === 'video' ? (
+              <video
+                id='videoonplay'
+                className={`relative mb-6 w-full ${
+                  canPlay ? 'opacity-100' : 'opacity-50'
+                }`}
+                controls
+                preload='auto'
+                playsInline
+              ></video>
+            ) : (
+              <audio
+                id='audioonplay'
+                className={`relative mb-6 w-full ${
+                  canPlay ? 'opacity-100' : 'opacity-50'
+                }`}
+                controls
+                preload='auto'
+                playsInline
+              ></audio>
+            )}
             {!canPlay && (
               <img
                 src='/images/loading.gif'
@@ -216,7 +290,7 @@ export default function Gallery() {
             )}
             <p className='text-sm text-black md:text-base'>
               Uploaded on{' '}
-              {new Date(currentAudio?.timestamp as Date).toLocaleString()}
+              {new Date(currentMedia?.timestamp as Date).toLocaleString()}
             </p>
           </div>
         </div>
@@ -241,8 +315,8 @@ export default function Gallery() {
               <div className='flex min-h-[70vh] w-full flex-col items-center justify-center'>
                 <i className='fas fa-folder-open text-5xl text-gray-300'></i>
                 <p className='mt-3 text-center text-base'>
-                  You have no generated audio now! Audio you've created will
-                  appear here.
+                  You have no generated podcasts now! Podcasts you've created
+                  will appear here.
                 </p>
               </div>
             ) : null}
@@ -251,19 +325,32 @@ export default function Gallery() {
                 <div className='grid h-max w-full grid-cols-1 gap-5 xs:grid-cols-2 md:grid-cols-3 lg:gap-8'>
                   {tracks
                     .filter((track) => track.status === 'completed')
-                    .map((track: AudioData) => {
-                      return (
+                    .map((track) => {
+                      return track.type === 'audio' ? (
                         <AudioCard
                           track={track}
                           canPlay={track.status === 'completed'}
                           canCopy={true}
-                          copyHandler={copyAudioLink}
+                          copyHandler={copyMediaLink}
                           canShare={true}
                           shareHandler={shareToTwitter}
-                          setCurrentAudio={setCurrentAudio}
-                          playAudio={playCurrentAudio}
-                          removeAudio={removeAudio}
+                          setCurrentMedia={setCurrentMedia}
+                          playMedia={playCurrentMedia}
+                          removeMedia={removeMedia}
                           key={track.audioId}
+                        />
+                      ) : (
+                        <VideoCard
+                          track={track}
+                          canPlay={track.status === 'completed'}
+                          canCopy={true}
+                          copyHandler={copyMediaLink}
+                          canShare={true}
+                          shareHandler={shareToTwitter}
+                          setCurrentMedia={setCurrentMedia}
+                          playMedia={playCurrentMedia}
+                          removeMedia={removeMedia}
+                          key={track.videoId}
                         />
                       );
                     })}
@@ -287,19 +374,32 @@ export default function Gallery() {
               <div className='mt-8 flex min-h-[] w-full max-w-[300px] flex-col items-center'>
                 {tracks
                   .filter((track) => track.status !== 'completed')
-                  .map((track: AudioData) => {
-                    return (
+                  .map((track) => {
+                    return track.type === 'audio' ? (
                       <AudioCard
                         track={track}
                         canPlay={track.status === 'completed'}
                         canCopy={false}
-                        copyHandler={copyAudioLink}
+                        copyHandler={copyMediaLink}
                         canShare={false}
                         shareHandler={shareToTwitter}
-                        setCurrentAudio={setCurrentAudio}
-                        playAudio={playCurrentAudio}
-                        removeAudio={removeAudio}
+                        setCurrentMedia={setCurrentMedia}
+                        playMedia={playCurrentMedia}
+                        removeMedia={removeMedia}
                         key={track.audioId}
+                      />
+                    ) : (
+                      <VideoCard
+                        track={track}
+                        canPlay={track.status === 'completed'}
+                        canCopy={false}
+                        copyHandler={copyMediaLink}
+                        canShare={false}
+                        shareHandler={shareToTwitter}
+                        setCurrentMedia={setCurrentMedia}
+                        playMedia={playCurrentMedia}
+                        removeMedia={removeMedia}
+                        key={track.videoId}
                       />
                     );
                   })}
@@ -319,131 +419,3 @@ export default function Gallery() {
     </>
   );
 }
-
-const AudioCard = ({
-  track,
-  canPlay,
-  canCopy,
-  copyHandler,
-  canShare,
-  shareHandler,
-  setCurrentAudio,
-  playAudio,
-  removeAudio,
-}: {
-  track: AudioData;
-  canPlay: boolean;
-  canCopy?: boolean;
-  copyHandler?: (id: string) => void;
-  canShare?: boolean;
-  shareHandler?: (id: string) => void;
-  setCurrentAudio?: React.Dispatch<any>;
-  playAudio: (src: string) => void;
-  removeAudio: (id: string) => void;
-}) => {
-  const [copied, setCopied] = useState(false);
-
-  return (
-    <div className='video-card flex flex-col items-center'>
-      <div className='card group relative h-max w-full max-w-[300px] rounded-md py-3 transition-all hover:shadow-lg'>
-        <div
-          className='relative my-3 h-[150px] max-h-[150px] w-full cursor-pointer bg-black'
-          onClick={() => {
-            if (canPlay) {
-              playAudio(track.url as string);
-              setCurrentAudio ? setCurrentAudio(track) : null;
-            }
-          }}
-        >
-          <img
-            src={track.talkingAvatar?.image_url}
-            alt='track poster'
-            className='mx-auto h-full w-[70%] object-cover'
-          />
-          {track.status === 'completed' ? (
-            <i className='fas fa-play invisible absolute top-[50%] left-[50%] z-50 -translate-x-[50%] -translate-y-[50%] text-4xl text-white opacity-0 transition-all group-hover:visible group-hover:opacity-100'></i>
-          ) : null}
-        </div>
-        <div className='flex justify-between'>
-          <div
-            className={`mx-3 w-max py-1 px-2 ${
-              track.status === 'completed'
-                ? 'bg-blue-500'
-                : track.status === 'failed'
-                ? 'bg-red-500'
-                : 'bg-gray-300'
-            } flex items-center rounded-lg text-sm text-white`}
-          >
-            {track.status === 'completed' ? (
-              <i className='fas fa-volume-up mr-2'></i>
-            ) : null}
-            {track.status}
-          </div>
-          <div
-            className={`icons flex w-max items-center justify-center px-3 ${
-              track.status === 'completed'
-                ? 'visible opacity-100'
-                : 'invisible opacity-0'
-            }`}
-          >
-            {canShare && track.status !== 'failed' && (
-              <button
-                className='flex cursor-pointer items-center justify-center text-blue-500'
-                title='Download audio'
-                onClick={() => {
-                  if (shareHandler) shareHandler(track.audioId as string);
-                }}
-              >
-                <i className='fab fa-twitter text-base'></i>
-              </button>
-            )}
-            {canCopy && track.status !== 'failed' && (
-              <button
-                className='relative mx-3 flex cursor-pointer items-center justify-center text-blue-500'
-                onClick={() => {
-                  if (copyHandler) copyHandler(track.audioId as string);
-                  setCopied(true);
-                  setTimeout(() => {
-                    setCopied(false);
-                  }, 2000);
-                }}
-                title='Copy video url'
-                disabled={track.status === 'processing'}
-              >
-                {copied && (
-                  <span className='absolute -top-4 cursor-pointer text-sm text-blue-400'>
-                    Copied!
-                  </span>
-                )}
-                <i className='fas fa-copy text-base'></i>
-              </button>
-            )}
-            {track.status === 'failed' ? (
-              <button
-                className='flex items-center justify-center text-base text-red-500'
-                title='Delete audio'
-                onClick={() => removeAudio(track.audioId as string)}
-              >
-                <i className='fas fa-trash'></i>
-              </button>
-            ) : null}
-          </div>
-        </div>
-      </div>
-      <div className='mx-auto flex flex-col items-center py-2.5'>
-        {track.status === 'processing' ? (
-          <p className='mb-2 text-center text-xs leading-tight text-gray-400'>
-            Audio generation could take 3-5 minutes depending on your internet
-            strength.
-          </p>
-        ) : null}
-        <p className='max-w-[200px] truncate text-center text-base'>
-          {track.audioTitle || track.audioId}
-        </p>
-        <p className='max-w-[200px] truncate text-center text-sm text-gray-500'>
-          {new Date(track.timestamp as Date).toLocaleString()}
-        </p>
-      </div>
-    </div>
-  );
-};

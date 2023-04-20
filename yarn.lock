@@ -2071,6 +2071,18 @@
   resolved "https://registry.yarnpkg.com/@stencil/core/-/core-2.22.3.tgz#83987e20bba855c450f6d6780e3a20192603f13f"
   integrity sha512-kmVA0M/HojwsfkeHsifvHVIYe4l5tin7J5+DLgtl8h6WWfiMClND5K3ifCXXI2ETDNKiEk21p6jql3Fx9o2rng==
 
+"@stripe/react-stripe-js@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@stripe/react-stripe-js/-/react-stripe-js-2.1.0.tgz#71541107628731fb790e1f31d8994fecbcd6cf13"
+  integrity sha512-Zb6Ycrj5QuhYkvtlvvLzo+cysUyA6wkx3zWHQ7uVnHRYRM/n1jtQD6VGBrdmptC8e8PJN6L091gBCyB5P0FqmA==
+  dependencies:
+    prop-types "^15.7.2"
+
+"@stripe/stripe-js@^1.52.1":
+  version "1.52.1"
+  resolved "https://registry.yarnpkg.com/@stripe/stripe-js/-/stripe-js-1.52.1.tgz#d821bcd627a34227c20fe87d7c8f8bd4386eaf2e"
+  integrity sha512-fza40OPSpGQlFxc5TZWiYC/6Lk89Sep1fLuv9ss33YS6lCAF8UZbfA1E6W+lwO4c7WRKZIZumHIEbPJfP/O9uw==
+
 "@svgr/babel-plugin-add-jsx-attribute@^6.5.1":
   version "6.5.1"
   resolved "https://registry.yarnpkg.com/@svgr/babel-plugin-add-jsx-attribute/-/babel-plugin-add-jsx-attribute-6.5.1.tgz#74a5d648bd0347bda99d82409d87b8ca80b9a1ba"
@@ -2373,6 +2385,11 @@
   version "18.15.3"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.15.3.tgz#f0b991c32cfc6a4e7f3399d6cb4b8cf9a0315014"
   integrity sha512-p6ua9zBxz5otCmbpb5D3U4B5Nanw6Pk3PPyX05xnxbB/fRv71N7CPmORg7uAD5P70T0xmx1pzAx/FUfa5X+3cw==
+
+"@types/node@>=8.1.0":
+  version "18.15.12"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.15.12.tgz#833756634e78c829e1254db006468dadbb0c696b"
+  integrity sha512-Wha1UwsB3CYdqUm2PPzh/1gujGCNtWVUYF0mB00fJFoR4gTyWTDPjSm+zBF787Ahw8vSGgBja90MkgFwvB86Dg==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.0"
@@ -6026,7 +6043,7 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-prop-types@^15.8.1:
+prop-types@^15.7.2, prop-types@^15.8.1:
   version "15.8.1"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.8.1.tgz#67d87bf1a694f48435cf332c24af10214a3140b5"
   integrity sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==
@@ -6091,6 +6108,13 @@ q@^1.5.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/q/-/q-1.5.1.tgz#7e32f75b41381291d04611f1bf14109ac00651d7"
   integrity sha1-fjL3W0E4EpHQRhHxvxQQmsAGUdc=
+
+qs@^6.11.0:
+  version "6.11.1"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.11.1.tgz#6c29dff97f0c0060765911ba65cbc9764186109f"
+  integrity sha512-0wsrzgTz/kAVIeuxSjnpGC56rzYtr6JT/2BwEvMaPhFIoYa1aGO8LbzuU1R0uUYQkLpWBTOj0l/CLAJB64J6nQ==
+  dependencies:
+    side-channel "^1.0.4"
 
 queue-microtask@^1.2.2:
   version "1.2.3"
@@ -6687,6 +6711,14 @@ strip-json-comments@^3.1.0, strip-json-comments@^3.1.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-3.1.1.tgz#31f1281b3832630434831c310c01cccda8cbe006"
   integrity sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==
+
+stripe@^12.1.1:
+  version "12.1.1"
+  resolved "https://registry.yarnpkg.com/stripe/-/stripe-12.1.1.tgz#2f5336cd62fb9f7324a29dddf2b231fce20ab5df"
+  integrity sha512-vn74vXtZeJx18oGzA0AhL818euhLF/juCgkKrJfAS1Y0bp5/EzQKPuc/75qQUvY43nNGIkgOVb3kUBuyoeqEkA==
+  dependencies:
+    "@types/node" ">=8.1.0"
+    qs "^6.11.0"
 
 styled-jsx@5.1.1:
   version "5.1.1"

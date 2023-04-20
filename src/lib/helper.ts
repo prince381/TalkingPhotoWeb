@@ -82,6 +82,7 @@ export type AudioData = {
   timestamp: Date;
   audioId: string;
   status: 'processing' | 'completed' | 'failed';
+  type?: 'video' | 'audio';
 };
 
 export type VideoData = {
@@ -94,6 +95,8 @@ export type VideoData = {
   inputText: string;
   voiceId: string;
   timestamp: Date;
+  type?: 'video' | 'audio';
+  test?: boolean;
 };
 
 // !STARTERCONF This OG is generated from https://github.com/theodorusclarence/og
@@ -239,12 +242,12 @@ export async function createVideo(
   }
 }
 
-export async function fetchVideoStatus(id: string) {
+export async function fetchVideoStatus(id: string, test: boolean) {
   const url = process.env.NEXT_PUBLIC_SERVER as string;
   try {
     console.log('fetching video status', id);
     const { data: response } = await axios.get(
-      `${url}/talking_photo/get_video/${id}`
+      `${url}/talking_photo/get_video/${id}?test=${test}`
     );
     return response;
   } catch (error) {
@@ -402,13 +405,13 @@ export async function generateVideo(
         },
       ],
       ratio: '16:9',
-      test: test,
+      test: false,
       version: 'v1alpha',
     };
 
     const response = await createVideo(payload);
     const { video_id, timestamp } = response;
-    const _doc = doc(firestore, `VideoPodcasts/${video_id}`);
+    const _doc = doc(firestore, `AudioPodcasts/${video_id}`);
     await setDoc(_doc, {
       id,
       talkingAvatar,
@@ -417,15 +420,20 @@ export async function generateVideo(
       videoTitle: title,
       inputText,
       audioRef: `tempAudio/${talkingAvatar.id}.mp3`,
+      audioUrl,
       voiceId,
       timestamp,
       type,
+      test,
     });
 
     const userDoc = doc(firestore, `Users/${id}`);
     const _docSnap = await getDoc(userDoc);
-    const { videos } = _docSnap.data() as any;
-    await updateDoc(doc(firestore, 'Users', id), { videos: videos + 1 });
+
+    if (_docSnap.exists()) {
+      const { videos } = _docSnap.data() as any;
+      await updateDoc(doc(firestore, 'Users', id), { videos: videos + 1 });
+    }
   } catch (error) {
     console.log(error);
   }
