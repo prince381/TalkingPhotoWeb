@@ -314,7 +314,8 @@ export default function GetStarted() {
 
   const toCheckout = async () => {
     const url = '/api/checkout_sessions';
-
+    console.log('priceId', process.env.NEXT_PUBLIC_PRICE_ID);
+    console.log('stripeKey', process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
     try {
       const { data: response } = await axios.post(url, {
         priceId: process.env.NEXT_PUBLIC_PRICE_ID,
