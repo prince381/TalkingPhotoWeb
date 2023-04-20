@@ -733,17 +733,17 @@ export default function GetStarted() {
                   value={inputText}
                   onInput={() => {
                     const text = scriptRef.current?.value;
-                    if (text && text.length > 450)
-                      setInputText(text.slice(0, 450));
+                    if (text && text.length > 700)
+                      setInputText(text.slice(0, 700));
                     else setInputText(text || '');
                   }}
                 ></textarea>
                 <p
                   className={`mb-3 self-end text-sm ${
-                    inputText.length > 450 ? 'text-red-500' : 'text-gray-600'
+                    inputText.length > 700 ? 'text-red-500' : 'text-gray-600'
                   }`}
                 >
-                  {inputText.length} / 450 characters
+                  {inputText.length} / 700 characters
                 </p>
                 <h2 className='mb-3 text-base'>Pick the bestie:</h2>
                 <div className='h-max w-full overflow-x-auto px-2 py-2.5'>
