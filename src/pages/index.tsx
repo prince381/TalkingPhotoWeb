@@ -66,12 +66,12 @@ export default function Home() {
               ></video>
               {!playing ? (
                 <i
-                  className='fas fa-play z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white shadow-xl'
+                  className='fas fa-play z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-blue-500 shadow-xl md:-translate-x-[10%]'
                   onClick={playVideo}
                 ></i>
               ) : (
                 <i
-                  className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-white opacity-0 shadow-xl transition-opacity group-hover:opacity-100'
+                  className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-blue-500 opacity-0 shadow-xl transition-opacity group-hover:opacity-100 md:-translate-x-[10%]'
                   onClick={playVideo}
                 ></i>
               )}

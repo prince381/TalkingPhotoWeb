@@ -14,6 +14,7 @@ import React, { useState } from 'react';
 import { generateVideo } from '@/lib/helper';
 
 import LoadingScreen from '@/components/LoadingScreen';
+import Seo from '@/components/Seo';
 
 // import { UserContext } from '@/context/userContext';
 import { auth, firestore } from '../../../firebase/firebase';
@@ -103,7 +104,8 @@ export default function Login() {
         await saveUserInfo(uid, email as string);
         Cookies.set(
           'allinUserCred',
-          JSON.stringify({ email, displayName, uid })
+          JSON.stringify({ email, displayName, uid }),
+          { expires: 7 }
         );
         router.push('/gallery');
       })
@@ -114,6 +116,7 @@ export default function Login() {
 
   return (
     <>
+      <Seo templateTitle='Login' />
       <LoadingScreen loading={loading} />
       <div className='relative flex h-max min-h-[100vh] w-screen items-center justify-center'>
         <div className='modal-card flex h-max w-[95%] max-w-[500px] flex-col items-center rounded-lg shadow-lg'>

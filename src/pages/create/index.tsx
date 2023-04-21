@@ -21,6 +21,7 @@ import {
 } from '@/lib/helper';
 
 import LoadingScreen from '@/components/LoadingScreen';
+import Seo from '@/components/Seo';
 
 import { firestore } from '../../../firebase/firebase';
 
@@ -246,7 +247,7 @@ export default function GetStarted() {
             voiceId: targetVoiceId,
             type: 'video',
             inputText,
-            test: currentUserInfo.paid,
+            test: !currentUserInfo.paid,
           };
         }
 
@@ -396,6 +397,7 @@ export default function GetStarted() {
 
   return (
     <>
+      <Seo templateTitle='Generate' />
       <LoadingScreen loading={loading} />
       {appState === 'generating' && (
         <div
@@ -417,7 +419,7 @@ export default function GetStarted() {
               ref={inputRef}
               value={artifactTitle}
               type='text'
-              className='sub-card mb-6 mt-2 w-full rounded-lg border-none py-3 outline-none'
+              className='sub-card mt-2 w-full rounded-lg border-none py-3 outline-none'
               onChange={() => {
                 setArtifactTitle(inputRef.current?.value || '');
               }}
@@ -425,7 +427,7 @@ export default function GetStarted() {
               onFocus={(e) => e.target.select()}
               required
             />
-            <div className='mb-3 h-max w-full'>
+            {/* <div className='mb-3 h-max w-full'>
               <label className='flex items-center text-base font-bold lg:text-lg xxl:text-xl'>
                 Choose the type:
               </label>
@@ -438,10 +440,10 @@ export default function GetStarted() {
                   setArtifactType(e.target.value as 'audio' | 'video');
                 }}
               >
-                <option value='audio'>Audio</option>
+                <option value='audio'>Only audio</option>
                 <option value='video'>Video</option>
               </select>
-            </div>
+            </div> */}
             {artifactType === 'video' &&
             !currentUserInfo.paid &&
             currentUserInfo.videos >= 1 ? (
@@ -521,8 +523,8 @@ export default function GetStarted() {
             </div>
             <div className='flex h-max w-full flex-col items-center md:flex-row'>
               <div className='flex h-full w-full flex-col items-center md:h-fit md:w-max lg:min-w-[250px]'>
-                <h2 className='sub-card mb-3 inline-block self-start whitespace-nowrap rounded-3xl py-1.5 px-5 text-sm lg:mb-5 lg:text-base'>
-                  Pick the bestie
+                <h2 className='mb-3 inline-block self-start whitespace-nowrap rounded-3xl py-1.5 px-5 text-sm lg:mb-5 lg:text-base'>
+                  Pick the bestie:
                 </h2>
                 <div className='h-max w-full overflow-x-auto px-2 py-2.5 xs:mr-2.5 xs:w-max'>
                   <div className='m-auto flex h-max w-max items-center xs:h-full xs:items-start md:grid md:grid-cols-1 md:flex-col lg:m-0  lg:overflow-x-visible'>
@@ -535,11 +537,11 @@ export default function GetStarted() {
                           )
                           .map((photo: Photo, index: number) => (
                             <div
-                              className='mr-4 mb-2 flex flex-col-reverse items-center last:mr-0 sm:mr-6 sm:last:mr-0 md:mr-0 md:items-start lg:min-w-[250px] lg:flex-row lg:items-center lg:justify-end  lg:last:mb-0'
+                              className='mr-4 mb-2 flex flex-col-reverse items-center last:mr-0 sm:mr-6 sm:last:mr-0 md:mr-0 md:items-start lg:w-max lg:flex-row-reverse lg:items-center lg:justify-end  lg:last:mb-0'
                               key={photo.id}
                             >
                               <p
-                                className={`text-xxs mt-1 hidden max-w-[150px] xxs:inline-block md:hidden lg:inline-block lg:text-sm ${
+                                className={`mt-1 hidden max-w-[110px] text-center text-xs xxs:inline-block md:hidden lg:inline-block lg:text-left lg:text-sm ${
                                   selectedAvatar.id === photo.id &&
                                   'text-blue-500'
                                 }`}
@@ -547,7 +549,7 @@ export default function GetStarted() {
                                 {getName(photo.id)}
                               </p>
                               <div
-                                className={`cursor-pointer rounded-full border-2  bg-gray-300 lg:ml-5 ${
+                                className={`cursor-pointer rounded-full border-2  bg-gray-300 lg:mr-5 ${
                                   selectedAvatar.id === photo.id &&
                                   'border-blue-500'
                                 }`}
@@ -609,8 +611,8 @@ export default function GetStarted() {
                 )}
               </div>
               <div className='flex h-full w-full flex-col items-center md:h-fit md:w-max lg:min-w-[250px]'>
-                <h2 className='sub-card mb-3 inline-block self-start whitespace-nowrap rounded-3xl py-1.5 px-5 text-sm lg:mb-5 lg:text-base'>
-                  Choose the song
+                <h2 className='mb-3 inline-block self-start whitespace-nowrap rounded-3xl py-1.5 px-5 text-sm lg:mb-5 lg:text-base'>
+                  Choose the song:
                 </h2>
                 <div className='h-max w-full overflow-x-auto px-2 py-2.5 xs:w-max xs:overflow-x-hidden'>
                   {vidType === 'premade' ? (
@@ -723,7 +725,10 @@ export default function GetStarted() {
           <div className='mt-8 flex h-max w-full items-center'>
             <div className='card h-max w-full rounded-lg py-3 px-4 shadow-sm md:h-full md:py-5 md:px-8 lg:py-5'>
               <div className='flex h-max w-full flex-col'>
-                <h2 className='mb-3 text-base'>Try it yourself:</h2>
+                <h2 className='mb-3 text-base'>
+                  Enter your script{' '}
+                  <span className='text-base font-bold text-red-500'>*</span>
+                </h2>
                 <textarea
                   name='text_script'
                   id='textScript'
@@ -745,7 +750,10 @@ export default function GetStarted() {
                 >
                   {inputText.length} / 700 characters
                 </p>
-                <h2 className='mb-3 text-base'>Pick the bestie:</h2>
+                <h2 className='mb-3 text-base'>
+                  Pick the bestie{' '}
+                  <span className='text-base font-bold text-red-500'>*</span>
+                </h2>
                 <div className='h-max w-full overflow-x-auto px-2 py-2.5'>
                   <div className='m-auto flex h-max w-max items-center'>
                     {photos
@@ -818,7 +826,7 @@ export default function GetStarted() {
                   }}
                   disabled={!inputText || !talkingAvatar.id}
                 >
-                  <span>Generate the audio</span>
+                  <span>Generate</span>
                 </button>
               </div>
             </div>

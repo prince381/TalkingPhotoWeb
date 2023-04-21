@@ -9,6 +9,8 @@ import React, { useEffect, useLayoutEffect } from 'react';
 
 import { generateVideo } from '@/lib/helper';
 
+import Seo from '@/components/Seo';
+
 // import { UserContext } from '@/context/userContext';
 import { auth, firestore } from '../../../firebase/firebase';
 
@@ -83,7 +85,8 @@ export default function Login() {
               await saveUserInfo(uid, email as string);
               Cookies.set(
                 'allinUserCred',
-                JSON.stringify({ email, displayName, uid })
+                JSON.stringify({ email, displayName, uid }),
+                { expires: 7 }
               );
               router.push('/gallery');
             })
@@ -102,15 +105,18 @@ export default function Login() {
   }, []);
 
   return (
-    <div className='flex h-screen flex-col items-center justify-center'>
-      <Image
-        src='/images/success.png'
-        alt='check-circle'
-        width={80}
-        height={80}
-      />
-      <h1 className='mt-4 text-2xl font-bold'>Login Successful</h1>
-      <p className='text-base'>Redirecting...</p>
-    </div>
+    <>
+      <Seo templateTitle='Login' />
+      <div className='flex h-screen flex-col items-center justify-center'>
+        <Image
+          src='/images/success.png'
+          alt='check-circle'
+          width={80}
+          height={80}
+        />
+        <h1 className='mt-4 text-2xl font-bold'>Login Successful</h1>
+        <p className='text-base'>Redirecting...</p>
+      </div>
+    </>
   );
 }

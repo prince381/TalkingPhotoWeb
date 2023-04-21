@@ -18,6 +18,7 @@ import {
 
 import AudioCard from '@/components/AudioCard';
 import Loader from '@/components/Loader';
+import Seo from '@/components/Seo';
 import VideoCard from '@/components/VideoCard';
 
 import { firestore } from '../../../firebase/firebase';
@@ -76,7 +77,7 @@ export default function Gallery() {
     media.load();
     setMediaOnPlay(true);
 
-    media.oncanplaythrough = () => {
+    media.oncanplay = () => {
       setCanPlay(true);
       // media.play();
     };
@@ -194,6 +195,7 @@ export default function Gallery() {
   return (
     <>
       {/* <LoadingScreen loading={loading} /> */}
+      <Seo templateTitle='Gallery' />
       <div className={`h-max w-screen ${mediaOnPlay ? 'fixed z-10' : ''}`}>
         <div
           id='mediaModal'

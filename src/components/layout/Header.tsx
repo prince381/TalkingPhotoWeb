@@ -20,7 +20,7 @@ export default function Header() {
   return (
     <header className='header sticky top-0 left-0 z-10 h-max w-screen py-5 sm:py-8'>
       <div className='mx-auto flex h-max w-[95%] max-w-[1200px] items-center justify-between border-b pb-4 sm:border-b-0'>
-        <Link href='/' className='text-base font-bold md:text-lg'>
+        <Link href='/create' className='text-base font-bold md:text-lg'>
           allinpod.ai
         </Link>
         <div className='flex items-center'>

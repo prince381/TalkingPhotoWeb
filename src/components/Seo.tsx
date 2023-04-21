@@ -87,11 +87,11 @@ export default function Seo(props: SeoProps) {
       <meta name='msapplication-TileColor' content='#ffffff' />
       <meta name='msapplication-config' content='/favicon/browserconfig.xml' />
       <meta name='theme-color' content='#ffffff' />
-      <link
+      {/* <link
         rel='stylesheet'
         href='https://use.fontawesome.com/releases/v5.15.4/css/all.css'
         integrity='sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm'
-      ></link>
+      ></link> */}
     </Head>
   );
 }
