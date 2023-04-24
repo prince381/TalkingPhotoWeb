@@ -3,10 +3,10 @@ import { useRouter } from 'next/router';
 
 // !STARTERCONF Change these default meta
 const defaultMeta = {
-  title: 'All-In Podcasts',
-  siteName: 'All-In Podcasts',
+  title: 'Allinpod.ai - AI speech software',
+  siteName: 'Allinpod.ai',
   description:
-    'All-In Podcast is an AI platform that allows you to create and publish your own podcast using the All-In podcast besties.',
+    "Make All-in podcast Besties talk with AI Speech Software. Create content you've always wanted with prime AI speech and video generation software. Discover the future of podcasting - Allinpod.ai",
   /** Without additional '/' on the end, e.g. https://theodorusclarence.com */
   url: 'https://allinpod.ai',
   type: 'website',
@@ -15,7 +15,7 @@ const defaultMeta = {
    * No need to be filled, will be populated with openGraph function
    * If you wish to use a normal image, just specify the path below
    */
-  image: 'https://allinpod.ai/images/allinpod.png',
+  image: 'https://allinpod.ai/images/open-graph.png',
 };
 
 type SeoProps = {

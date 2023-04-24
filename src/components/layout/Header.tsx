@@ -31,7 +31,7 @@ export default function Header() {
                 <li key={`${href}${label}`}>
                   <Link
                     href={href}
-                    className={`transition-all duration-75 hover:text-blue-400 ${
+                    className={`text-xs transition-all duration-75 hover:text-blue-400 xs:text-sm ${
                       href === router.pathname ? 'text-blue-400' : ''
                     }`}
                   >
@@ -39,6 +39,15 @@ export default function Header() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  href='https://allinpod.canny.io/feature-requests'
+                  target='_blank'
+                  className='text-xs transition-all duration-75 hover:text-blue-400 xs:text-sm'
+                >
+                  Feature Requests
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>
@@ -49,7 +58,7 @@ export default function Header() {
             <li key={`${href}${label}`}>
               <Link
                 href={href}
-                className={`transition-all duration-75 hover:text-blue-400 ${
+                className={`text-xs transition-all duration-75 hover:text-blue-400 xs:text-sm ${
                   href === router.pathname ? 'text-blue-400' : ''
                 }`}
               >
@@ -57,6 +66,15 @@ export default function Header() {
               </Link>
             </li>
           ))}
+          <li>
+            <Link
+              href='https://allinpod.canny.io/feature-requests'
+              target='_blank'
+              className='text-xs transition-all duration-75 hover:text-blue-400 xs:text-sm'
+            >
+              Feature Requests
+            </Link>
+          </li>
         </ul>
       </nav>
     </header>

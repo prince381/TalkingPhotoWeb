@@ -120,22 +120,35 @@ export default function Gallery() {
     // console.log(target);
   };
 
-  const createTwitterShareContent = (id: string, type: 'audio' | 'video') => {
+  const shortenUrl = async (url: string) => {
+    const response = await fetch(
+      `https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`
+    );
+    const data = await response.text();
+    return data;
+  };
+
+  const createTwitterShareContent = async (
+    id: string,
+    type: 'audio' | 'video'
+  ) => {
     const hashtags =
       'allinpodcast,davidsacks,jasoncalacanis,chamathpalihapitiya,davidfriedberg';
     const text = 'AI made All-in podcast Besties talks';
     const url = `${window.location.href}?track=${id}&type=${type}`;
-    return `https://twitter.com/intent/tweet?text=${text}&url=${url}&hashtags=${hashtags}`;
+    const shareUrl = await shortenUrl(url);
+    return `https://twitter.com/intent/tweet?text=${text}&url=${shareUrl}&hashtags=${hashtags}`;
   };
 
-  const shareToTwitter = (id: string, type: 'audio' | 'video') => {
-    const url = createTwitterShareContent(id, type);
+  const shareToTwitter = async (id: string, type: 'audio' | 'video') => {
+    const url = await createTwitterShareContent(id, type);
     window.open(url, '_blank');
   };
 
-  const copyMediaLink = (id: string, type: 'audio' | 'video') => {
+  const copyMediaLink = async (id: string, type: 'audio' | 'video') => {
     const url = `${window.location.href}?track=${id}&type=${type}`;
-    navigator.clipboard.writeText(url);
+    const shareUrl = await shortenUrl(url);
+    navigator.clipboard.writeText(shareUrl);
     setLinkCopied(true);
     setTimeout(() => {
       setLinkCopied(false);

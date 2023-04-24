@@ -498,6 +498,16 @@ export default function GetStarted() {
       )}
       <div className='mx-auto h-max w-[95%] max-w-[1200px] py-10'>
         <div className='flex h-max w-full flex-col items-center'>
+          <div className='mb-5 flex h-max w-full items-center rounded-lg bg-blue-400 p-3.5 md:p-6'>
+            {/* <i className="fas fa-info text-white text-xl md:text-2xl mr-5"></i> */}
+            <p className='text-sm text-white'>
+              We created this platform to have fun with Besties and explore the
+              incredible power of AI. Join us on this journey of transforming
+              podcasting, blogging, and more with AI voice and video generation.
+              Follow us to stay up-to-date on our latest developments. Be a part
+              of the future of content creation. My Creativity Box team.
+            </p>
+          </div>
           <div className='card flex h-max w-full flex-col items-center rounded-lg px-2.5 py-4 shadow-sm xs:px-4 lg:py-6 xl:py-10'>
             <div className='rounded-5xl mb-8 flex w-max items-center overflow-hidden border-2 border-blue-500'>
               <button
