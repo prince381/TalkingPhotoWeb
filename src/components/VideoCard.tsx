@@ -67,13 +67,7 @@ export default function VideoCard({
             ) : null}
             {track.status}
           </div>
-          <div
-            className={`icons flex w-max items-center justify-center px-3 ${
-              track.status === 'completed'
-                ? 'visible opacity-100'
-                : 'invisible opacity-0'
-            }`}
-          >
+          <div className='flex w-max items-center justify-center px-3'>
             {canShare && track.status !== 'failed' && (
               <button
                 className='flex cursor-pointer items-center justify-center text-blue-500'

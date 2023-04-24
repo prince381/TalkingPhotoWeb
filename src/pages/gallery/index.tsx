@@ -92,8 +92,7 @@ export default function Gallery() {
         }),
       ];
       setTracks(newTracks);
-      if (type === 'audio') await deleteDocument('AudioPodcasts', id);
-      else await deleteDocument('VideoPodcasts', id);
+      await deleteDocument('AudioPodcasts', id);
     } catch (error) {
       console.log('Something went wrong while deleting audio:', error);
     }

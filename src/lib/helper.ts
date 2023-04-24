@@ -304,6 +304,7 @@ export async function deleteDocument(collection_name: string, doc_id: string) {
   const ref = doc(firestore, collection_name, doc_id);
   try {
     await deleteDoc(ref);
+    console.log('Document with id', doc_id, 'deleted successfully');
   } catch (error) {
     console.log('Document with id', doc_id, 'does not exist');
   }
