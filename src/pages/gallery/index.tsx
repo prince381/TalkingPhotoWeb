@@ -276,15 +276,24 @@ export default function Gallery() {
               </ul>
             </div>
             {currentMedia?.type === 'video' ? (
-              <video
-                id='videoonplay'
-                className={`relative mb-6 w-full ${
-                  canPlay ? 'opacity-100' : 'opacity-50'
-                }`}
-                controls
-                preload='auto'
-                playsInline
-              ></video>
+              <div className='relative mb-6 w-full'>
+                <video
+                  id='videoonplay'
+                  className={`relative mb-6 w-full ${
+                    canPlay ? 'opacity-100' : 'opacity-50'
+                  }`}
+                  controls
+                  preload='auto'
+                  playsInline
+                ></video>
+                <img
+                  src='/images/watermark.png'
+                  alt='watermark'
+                  className={`pointer-events-none absolute left-0 top-0 z-10 h-full w-full ${
+                    canPlay ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+              </div>
             ) : (
               <audio
                 id='audioonplay'
