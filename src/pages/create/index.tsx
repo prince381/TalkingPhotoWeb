@@ -427,7 +427,7 @@ export default function GetStarted() {
               onFocus={(e) => e.target.select()}
               required
             />
-            {/* <div className='mb-3 h-max w-full'>
+            <div className='mb-3 h-max w-full'>
               <label className='flex items-center text-base font-bold lg:text-lg xxl:text-xl'>
                 Choose the type:
               </label>
@@ -443,7 +443,7 @@ export default function GetStarted() {
                 <option value='audio'>Only audio</option>
                 <option value='video'>Video</option>
               </select>
-            </div> */}
+            </div>
             {artifactType === 'video' &&
             !currentUserInfo.paid &&
             currentUserInfo.videos >= 1 ? (
