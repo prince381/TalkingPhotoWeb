@@ -1,5 +1,6 @@
 import { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
+import Script from 'next/script';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
@@ -34,10 +35,25 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, [router]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {showHeader && <Header />}
-      <Component {...pageProps} />
-    </QueryClientProvider>
+    <>
+      <Script
+        strategy='afterInteractive'
+        src='https://www.googletagmanager.com/gtag/js?id=G-8QX2TDB059'
+      />
+      <Script id='google-analytics' strategy='afterInteractive'>
+        {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-8QX2TDB059');
+          `}
+      </Script>
+      <QueryClientProvider client={queryClient}>
+        {showHeader && <Header />}
+        <Component {...pageProps} />
+      </QueryClientProvider>
+    </>
   );
 }
 
