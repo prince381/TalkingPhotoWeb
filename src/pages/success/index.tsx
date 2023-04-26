@@ -58,7 +58,7 @@ export default function Login() {
     const _doc = doc(firestore, `Users/${uid}`);
     const _docSnap = await getDoc(_doc);
     if (!_docSnap.exists()) {
-      const _docData = { email, uid, paid: false, videos: 0 };
+      const _docData = { email, uid, paid: false, videos: 0, audios: 0 };
       await setDoc(_doc, _docData);
     }
   }

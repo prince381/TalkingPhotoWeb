@@ -58,6 +58,7 @@ type UserInfo = {
   paid: boolean;
   paymentIntentId?: string;
   videos: number;
+  audios: number;
 };
 
 export default function GetStarted() {
@@ -74,6 +75,7 @@ export default function GetStarted() {
     uid: '',
     paid: false,
     videos: 0,
+    audios: 0,
   });
 
   const [inputText, setInputText] = useState('');
@@ -164,8 +166,9 @@ export default function GetStarted() {
       const userRef = doc(firestore, 'Users', user.uid);
       onSnapshot(userRef, (snapshot) => {
         if (snapshot.exists()) {
-          const { email, paid, uid, videos } = snapshot.data() as DocumentData;
-          setCurrentUserInfo({ email, paid, uid, videos });
+          const { email, paid, uid, videos, audios } =
+            snapshot.data() as DocumentData;
+          setCurrentUserInfo({ email, paid, uid, videos, audios });
         }
       });
     }
@@ -450,17 +453,35 @@ export default function GetStarted() {
               <div className='mx-auto w-[90%] text-center'>
                 <p className='text-sm text-blue-500'>
                   You have reached the limit of 1 video per free user account.
-                  Subscribe for just <b>$10</b> to continue generating your
+                  Subscribe for just <b>$12</b> to continue generating your
                   video podcasts.
                 </p>
               </div>
             ) : artifactType === 'video' &&
               currentUserInfo.paid &&
-              currentUserInfo.videos >= 3 ? (
+              currentUserInfo.videos >= 10 ? (
               <div className='mx-auto w-[90%] text-center'>
                 <p className='text-sm text-blue-500'>
                   You have reached the limit of 3 videos per paid user account.
                   Please renew your subscription if you need more.
+                </p>
+              </div>
+            ) : artifactType === 'audio' &&
+              !currentUserInfo.paid &&
+              currentUserInfo.audios >= 3 ? (
+              <div className='mx-auto w-[90%] text-center'>
+                <p className='text-sm text-blue-500'>
+                  You have reached the limit of 3 audios per free user account.
+                  Please renew your subscription if you need more.
+                </p>
+              </div>
+            ) : artifactType === 'audio' &&
+              currentUserInfo.paid &&
+              currentUserInfo.audios >= 100 ? (
+              <div className='mx-auto w-[90%] text-center'>
+                <p className='text-sm text-blue-500'>
+                  You have reached the limit of 100 audios per paid user
+                  account. Please renew your subscription if you need more.
                 </p>
               </div>
             ) : null}
@@ -473,10 +494,24 @@ export default function GetStarted() {
                     currentUserInfo.videos >= 1) ||
                   (artifactType === 'video' &&
                     currentUserInfo.paid &&
-                    currentUserInfo.videos >= 3)
+                    currentUserInfo.videos >= 10) ||
+                  (artifactType === 'audio' &&
+                    !currentUserInfo.paid &&
+                    currentUserInfo.videos >= 3) ||
+                  (artifactType === 'audio' &&
+                    currentUserInfo.paid &&
+                    currentUserInfo.videos >= 100)
                 ) {
                   setSubscribing(true);
-                  toCheckout();
+                  router.push(
+                    {
+                      pathname: '/pricing',
+                      query: {
+                        userPlan: currentUserInfo.paid ? 'creator' : 'free',
+                      },
+                    },
+                    '/pricing'
+                  );
                 } else {
                   generatePodcast();
                 }

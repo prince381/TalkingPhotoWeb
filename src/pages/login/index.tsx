@@ -8,6 +8,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 
@@ -27,6 +28,8 @@ export default function Login() {
   const [emailSent, setEmailSent] = useState(false);
   const [loginState, setLoginState] = useState(true);
   const [loading, setLoading] = useState(false);
+  const termsRef = React.useRef<HTMLInputElement>(null);
+  const newsRef = React.useRef<HTMLInputElement>(null);
 
   // Save temp data to firestore
   async function saveTempDataToDb(uid: string) {
@@ -63,12 +66,17 @@ export default function Login() {
     const _doc = doc(firestore, `Users/${uid}`);
     const _docSnap = await getDoc(_doc);
     if (!_docSnap.exists()) {
-      const _docData = { email, uid, paid: false, videos: 0 };
+      const _docData = { email, uid, paid: false, videos: 0, audios: 0 };
       await setDoc(_doc, _docData);
     }
   }
 
   const authenticateUserWithEmail = () => {
+    if (!loginState && termsRef.current?.checked === false) {
+      alert('Please accept the terms and conditions');
+      return;
+    }
+
     if (email) {
       setSendingLink(true);
 
@@ -94,6 +102,11 @@ export default function Login() {
   };
 
   const handleGoogleAuth = () => {
+    if (!loginState && termsRef.current?.checked === false) {
+      alert('Please accept the terms and conditions');
+      return;
+    }
+
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
       .then(async (result) => {
@@ -107,6 +120,12 @@ export default function Login() {
           JSON.stringify({ email, displayName, uid }),
           { expires: 7 }
         );
+
+        if (!loginState && newsRef.current?.checked === true) {
+          const _doc = doc(firestore, 'UpdateSubscribers', uid);
+          await setDoc(_doc, { id: uid, email });
+        }
+
         router.push('/gallery');
       })
       .catch((error) => {
@@ -186,6 +205,35 @@ export default function Login() {
               />
               {loginState ? 'Login with Google' : 'Sign up with Google'}
             </button>
+            {!loginState && (
+              <div className='mt-5 flex flex-col'>
+                <div className='mb-4 w-full'>
+                  <input
+                    type='checkbox'
+                    id='terms'
+                    className='mr-2 inline-block rounded-sm checked:border-none checked:outline-none'
+                    ref={termsRef}
+                  />
+                  <label htmlFor='terms' className='cursor-pointer text-sm'>
+                    I agree to the{' '}
+                    <Link href='/terms' className='text-blue-500'>
+                      terms of service
+                    </Link>
+                  </label>
+                </div>
+                <div>
+                  <input
+                    type='checkbox'
+                    id='info'
+                    className='mr-2 inline-block rounded-sm checked:border-none checked:outline-none'
+                    ref={newsRef}
+                  />
+                  <label htmlFor='info' className='cursor-pointer text-sm'>
+                    I want to receive product updates
+                  </label>
+                </div>
+              </div>
+            )}
           </form>
         </div>
       </div>
