@@ -98,6 +98,8 @@ export default function Gallery() {
     }
   };
 
+  // This is a comment
+
   const closeMediaModal = (e: React.MouseEvent<HTMLDivElement>) => {
     let media: HTMLAudioElement | HTMLVideoElement;
     if (currentMedia?.type === 'audio')
