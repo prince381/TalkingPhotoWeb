@@ -286,6 +286,7 @@ export default function Gallery() {
                   controls
                   preload='auto'
                   playsInline
+                  controlsList='nodownload'
                 ></video>
                 <img
                   src='/images/watermark.png'
@@ -304,6 +305,7 @@ export default function Gallery() {
                 controls
                 preload='auto'
                 playsInline
+                controlsList='nodownload'
               ></audio>
             )}
             {!canPlay && (
