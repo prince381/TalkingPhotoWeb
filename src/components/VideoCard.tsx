@@ -63,9 +63,9 @@ export default function VideoCard({
             } flex items-center rounded-lg text-sm text-white`}
           >
             {track.status === 'completed' ? (
-              <i className='fas fa-video mr-2'></i>
+              <i className='fas fa-video'></i>
             ) : null}
-            {track.status}
+            {track.status !== 'completed' ? track.status : ''}
           </div>
           <div className='flex w-max items-center justify-center px-3'>
             {canShare && track.status !== 'failed' && (
