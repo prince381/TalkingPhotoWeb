@@ -63,6 +63,7 @@ export default function Home() {
                 src='https://firebasestorage.googleapis.com/v0/b/all-in-pod.appspot.com/o/premadeVideos%2Fallinone.mp4?alt=media&token=a966bce5-873f-445c-bf98-71f95fa3bf54#t=0.001'
                 className='h-full max-h-[500px] w-full md:max-h-[90vh] xl:min-w-[800px]'
                 preload='metadata'
+                poster='/images/allinone.png'
               ></video>
               {!playing ? (
                 <i

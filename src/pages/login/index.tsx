@@ -28,6 +28,7 @@ export default function Login() {
   const [emailSent, setEmailSent] = useState(false);
   const [loginState, setLoginState] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const termsRef = React.useRef<HTMLInputElement>(null);
   const newsRef = React.useRef<HTMLInputElement>(null);
 
@@ -158,10 +159,31 @@ export default function Login() {
             </p>
             <input
               type='email'
-              className='sub-card my-6 w-full rounded-lg border-none py-3 outline-none focus:outline-none'
+              className={`sub-card my-6 w-full rounded-lg border-none py-3 focus:border-none ${
+                error
+                  ? 'outline-1 outline-red-500 focus:outline-1 focus:ring-red-500'
+                  : ''
+              }`}
               placeholder='Email address'
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onInput={(e) => {
+                e.preventDefault();
+                const { value } = e.target as HTMLInputElement;
+                const isMail = /\w+@[a-zA-Z_]+?\.([a-z]{2,3})+/.test(value);
+                // Check to make sure email is valid and there is no space
+                if (!isMail || value.includes(' ')) {
+                  setError(true);
+                } else {
+                  setError(false);
+                }
+
+                if (value.trimStart() === '') {
+                  (e.target as HTMLInputElement).value = '';
+                  setEmail('');
+                } else {
+                  setEmail(value);
+                }
+              }}
               required
             />
             <button

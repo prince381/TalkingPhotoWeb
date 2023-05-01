@@ -3,8 +3,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable no-console */
-import { loadStripe } from '@stripe/stripe-js';
-import axios from 'axios';
 import { doc, DocumentData, onSnapshot, setDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
@@ -91,6 +89,7 @@ export default function GetStarted() {
 
   const scriptRef = React.useRef<HTMLTextAreaElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const [hasSymbol, setHasSymbol] = useState(false);
 
   const savedPhotoIds = [
     '5ffc20fde7324504849c373bdffc410b',
@@ -316,34 +315,13 @@ export default function GetStarted() {
     }
   };
 
-  const toCheckout = async () => {
-    const url = '/api/checkout_sessions';
-
-    try {
-      const { data: response } = await axios.post(url, {
-        priceId: process.env.NEXT_PUBLIC_PRICE_ID,
-      });
-      console.log(response);
-
-      const stripeKey = process.env
-        .NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string;
-      const stripe = await loadStripe(stripeKey);
-      if (stripe) {
-        const { error } = await stripe.redirectToCheckout({
-          sessionId: response.session.id,
-        });
-
-        if (error) throw error;
-      } else {
-        console.log('Stripe is not loaded');
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   useEffect(() => {
     getSavedUser();
+
+    const section = document.getElementById('generate');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+    }
   }, []);
 
   // useEffect(() => {
@@ -395,6 +373,8 @@ export default function GetStarted() {
         (photo: Photo) => !photo.is_preset && savedPhotoIds.includes(photo.id)
       );
       setTalkingAvatar(avatars[0]);
+      const defaultText = `${getName(avatars[0].id)}_${formatDate(new Date())}`;
+      setArtifactTitle(defaultText);
     }
   }, [photos]);
 
@@ -767,7 +747,7 @@ export default function GetStarted() {
               </div>
             </div>
           </div>
-          <div className='mt-8 flex h-max w-full items-center'>
+          <div className='mt-8 flex h-max w-full items-center' id='generate'>
             <div className='card h-max w-full rounded-lg py-3 px-4 shadow-sm md:h-full md:py-5 md:px-8 lg:py-5'>
               <div className='flex h-max w-full flex-col'>
                 <h2 className='mb-3 text-base'>
@@ -777,7 +757,11 @@ export default function GetStarted() {
                 <textarea
                   name='text_script'
                   id='textScript'
-                  className='sub-card mb-1 h-[25vh] w-full resize-none rounded-md border-none outline-none focus:border-none focus:outline-none'
+                  className={`sub-card mb-1 h-[25vh] w-full resize-none rounded-md border-none focus:border-none ${
+                    hasSymbol
+                      ? 'outline-1 outline-red-500 focus:outline-1 focus:ring-red-500'
+                      : ''
+                  }`}
                   placeholder='Type or paste a paragraph here...'
                   ref={scriptRef}
                   value={inputText}
@@ -786,14 +770,26 @@ export default function GetStarted() {
                     if (text && text.length > 700)
                       setInputText(text.slice(0, 700));
                     else setInputText(text || '');
+
+                    // Check if the text includes symbols
+                    if (text && text.match(/[^a-zA-Z0-9\s,.?-]/g)) {
+                      setHasSymbol(true);
+                    } else {
+                      setHasSymbol(false);
+                    }
                   }}
                 ></textarea>
                 <p
-                  className={`mb-3 self-end text-sm ${
-                    inputText.length > 700 ? 'text-red-500' : 'text-gray-600'
+                  className={`mb-5 flex w-full items-center self-end text-sm ${
+                    hasSymbol ? 'justify-between' : 'justify-end'
                   }`}
                 >
-                  {inputText.length} / 700 characters
+                  {hasSymbol && (
+                    <span className='text-red-500'>
+                      Do not include symbols (eg. @,~,+,-,$,^,&,*,#)
+                    </span>
+                  )}
+                  <span>{inputText.length} / 700 characters</span>
                 </p>
                 <h2 className='mb-3 text-base'>
                   Pick the bestie{' '}
@@ -859,7 +855,7 @@ export default function GetStarted() {
                       : 'cursor-pointer bg-blue-500'
                   } py-5 px-10 text-white`}
                   onClick={() => {
-                    if (inputText && talkingAvatar.id)
+                    if (inputText && talkingAvatar.id && !hasSymbol)
                       setAppState('generating');
 
                     if (inputText && !talkingAvatar.id) {

@@ -265,6 +265,11 @@ textarea.outline-1 {
   outline-style: solid;
 }
 
+.focus\:outline-none:focus {
+  outline: none;
+  outline-offset: 0px;
+}
+
 @media screen and (min-width: 1024px) {
   .current-avatar {
     position: relative;

@@ -149,11 +149,12 @@ export default function Gallery() {
   const copyMediaLink = async (id: string, type: 'audio' | 'video') => {
     const url = `${window.location.href}?track=${id}&type=${type}`;
     const shareUrl = await shortenUrl(url);
-    navigator.clipboard.writeText(shareUrl);
-    setLinkCopied(true);
-    setTimeout(() => {
-      setLinkCopied(false);
-    }, 2000);
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setLinkCopied(true);
+      setTimeout(() => {
+        setLinkCopied(false);
+      }, 2000);
+    });
   };
 
   useEffect(() => {
