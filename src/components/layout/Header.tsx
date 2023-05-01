@@ -51,7 +51,7 @@ export default function Header() {
                 <li key={`${href}${label}`}>
                   <Link
                     href={href}
-                    className={`text-xs transition-all duration-75 hover:text-blue-400 xs:text-sm ${
+                    className={`text-sm transition-all duration-75 hover:text-blue-400 ${
                       href === router.pathname ? 'text-blue-400' : ''
                     }`}
                   >
@@ -63,20 +63,20 @@ export default function Header() {
                 <Link
                   href='https://allinpod.canny.io/feature-requests'
                   target='_blank'
-                  className='text-xs transition-all duration-75 hover:text-blue-400 xs:text-sm'
+                  className='text-sm transition-all duration-75 hover:text-blue-400'
                 >
                   Feature Requests
                 </Link>
               </li>
               <li>
                 {user ? (
-                  <button className='border-none bg-none text-xs transition-all duration-75 hover:text-blue-400 xs:text-sm'>
+                  <button className='border-none bg-none text-xs transition-all duration-75 hover:text-blue-400'>
                     Log out
                   </button>
                 ) : (
                   <Link
                     href='/login'
-                    className='text-xs transition-all duration-75 hover:text-blue-400 xs:text-sm'
+                    className='text-sm transition-all duration-75 hover:text-blue-400'
                   >
                     Log in
                   </Link>
@@ -122,7 +122,7 @@ export default function Header() {
             <li key={`${href}${label}`}>
               <Link
                 href={href}
-                className={`text-xs transition-all duration-75 hover:text-blue-400 xs:text-sm ${
+                className={`text-sm transition-all duration-75 hover:text-blue-400 ${
                   href === router.pathname ? 'text-blue-400' : ''
                 }`}
               >
@@ -134,7 +134,7 @@ export default function Header() {
             <Link
               href='https://allinpod.canny.io/feature-requests'
               target='_blank'
-              className='text-xs transition-all duration-75 hover:text-blue-400 xs:text-sm'
+              className='text-sm transition-all duration-75 hover:text-blue-400'
             >
               Feature Requests
             </Link>
@@ -145,7 +145,7 @@ export default function Header() {
             ) : (
               <Link
                 href='/login'
-                className='text-xs transition-all duration-75 hover:text-blue-400 xs:text-sm'
+                className='text-sm transition-all duration-75 hover:text-blue-400'
               >
                 Log in
               </Link>

@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-console */
+import copy from 'copy-to-clipboard';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -149,12 +150,13 @@ export default function Gallery() {
   const copyMediaLink = async (id: string, type: 'audio' | 'video') => {
     const url = `${window.location.href}?track=${id}&type=${type}`;
     const shareUrl = await shortenUrl(url);
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      setLinkCopied(true);
-      setTimeout(() => {
-        setLinkCopied(false);
-      }, 2000);
-    });
+    copy(shareUrl);
+    setLinkCopied(true);
+    setTimeout(() => {
+      setLinkCopied(false);
+    }, 2000);
+    // navigator.clipboard.writeText(shareUrl).then(() => {
+    // });
   };
 
   useEffect(() => {
