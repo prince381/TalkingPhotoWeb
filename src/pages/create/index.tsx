@@ -776,7 +776,7 @@ export default function GetStarted() {
                     else setInputText(text || '');
 
                     // Check if the text includes symbols
-                    if (text && text.match(/[^a-zA-Z0-9\s,.?-]/g)) {
+                    if (text && text.match(/[^a-zA-Z0-9\s,.'"!?-]/g)) {
                       setHasSymbol(true);
                     } else {
                       setHasSymbol(false);
