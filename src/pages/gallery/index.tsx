@@ -4,7 +4,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-console */
 import copy from 'copy-to-clipboard';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  updateDoc,
+} from 'firebase/firestore';
+import Cookies from 'js-cookie';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
@@ -26,6 +34,7 @@ import { firestore } from '../../../firebase/firebase';
 
 export default function Gallery() {
   const router = useRouter();
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [tracks, setTracks] = useState<(AudioData & VideoData)[]>([]);
   const [loading, setLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -66,21 +75,31 @@ export default function Gallery() {
     }
   };
 
-  const playCurrentMedia = (src: string, type: 'audio' | 'video') => {
+  const playCurrentMedia = (track: AudioData | VideoData | any) => {
     let media: HTMLAudioElement | HTMLVideoElement;
-    if (type === 'audio') {
+    if (track.type === 'audio') {
       media = document.getElementById('audioonplay') as HTMLAudioElement;
     } else {
       media = document.getElementById('videoonplay') as HTMLVideoElement;
     }
 
-    media.src = src;
+    media.src = track.url as string;
     media.load();
     setMediaOnPlay(true);
 
-    media.oncanplay = () => {
+    media.oncanplay = async () => {
       setCanPlay(true);
-      // media.play();
+
+      if (currentUser && currentUser.uid) {
+        if (!track.opened && currentUser.uid === track.id) {
+          const trackRef = doc(
+            firestore,
+            'AudioPodcasts',
+            track.type === 'audio' ? track.audioId : track.videoId
+          );
+          await updateDoc(trackRef, { opened: true });
+        }
+      }
     };
   };
 
@@ -116,6 +135,7 @@ export default function Gallery() {
 
     media.pause();
     media.src = '';
+
     setMediaOnPlay(false);
     setCurrentMedia(null);
     setCanPlay(false);
@@ -161,7 +181,17 @@ export default function Gallery() {
 
   useEffect(() => {
     getSavedPodcasts();
+
+    const userCred = Cookies.get('allinUserCred');
+    if (userCred) {
+      const user = JSON.parse(userCred);
+      setCurrentUser(user);
+    }
   }, []);
+
+  // useEffect(() => {
+  //   if (currentUser) console.log(currentUser);
+  // }, [currentUser]);
 
   useEffect(() => {
     (async () => {
@@ -188,7 +218,6 @@ export default function Gallery() {
     if (router.query.track && router.query.type) {
       const id = router.query.track as string;
       const type = router.query.type as string;
-      console.log('id', id, 'type', type);
       const track = tracks.find((track) => {
         if (type === 'audio') return track.audioId === id;
         return track.videoId === id;
@@ -198,7 +227,7 @@ export default function Gallery() {
         setCurrentMedia(track);
         setMediaOnPlay(true);
         setTimeout(() => {
-          playCurrentMedia(track.url as string, type as 'audio' | 'video');
+          playCurrentMedia(track);
         }, 500);
       }
     }
@@ -213,7 +242,7 @@ export default function Gallery() {
     <>
       {/* <LoadingScreen loading={loading} /> */}
       <Seo templateTitle='Gallery' />
-      <div className={`h-max w-screen ${mediaOnPlay ? 'fixed z-10' : ''}`}>
+      <div className='h-max w-screen'>
         <div
           id='mediaModal'
           className={`fixed left-0 top-0 z-[1000] flex h-screen w-screen items-center justify-center backdrop-blur-sm transition-all duration-300 ${
@@ -289,7 +318,8 @@ export default function Gallery() {
                   controls
                   preload='auto'
                   playsInline
-                  controlsList='nodownload'
+                  controlsList='nodownload noremoteplayback noplaybackrate'
+                  onContextMenu={(e) => e.preventDefault()}
                 ></video>
                 <img
                   src='/images/watermark.png'
@@ -308,7 +338,7 @@ export default function Gallery() {
                 controls
                 preload='auto'
                 playsInline
-                controlsList='nodownload'
+                controlsList='nodownload noremoteplayback noplaybackrate'
               ></audio>
             )}
             {!canPlay && (
@@ -360,6 +390,11 @@ export default function Gallery() {
                         <AudioCard
                           track={track}
                           canPlay={track.status === 'completed'}
+                          opened={
+                            currentUser && currentUser.uid === track.id
+                              ? (track.opened as boolean)
+                              : true
+                          }
                           canCopy={true}
                           copyHandler={copyMediaLink}
                           canShare={true}
@@ -373,6 +408,11 @@ export default function Gallery() {
                         <VideoCard
                           track={track}
                           canPlay={track.status === 'completed'}
+                          opened={
+                            currentUser && currentUser.uid === track.id
+                              ? (track.opened as boolean)
+                              : true
+                          }
                           canCopy={true}
                           copyHandler={copyMediaLink}
                           canShare={true}
@@ -409,6 +449,11 @@ export default function Gallery() {
                       <AudioCard
                         track={track}
                         canPlay={track.status === 'completed'}
+                        opened={
+                          currentUser && currentUser.uid === track.id
+                            ? (track.opened as boolean)
+                            : true
+                        }
                         canCopy={false}
                         copyHandler={copyMediaLink}
                         canShare={false}
@@ -422,6 +467,11 @@ export default function Gallery() {
                       <VideoCard
                         track={track}
                         canPlay={track.status === 'completed'}
+                        opened={
+                          currentUser && currentUser.uid === track.id
+                            ? (track.opened as boolean)
+                            : true
+                        }
                         canCopy={false}
                         copyHandler={copyMediaLink}
                         canShare={false}

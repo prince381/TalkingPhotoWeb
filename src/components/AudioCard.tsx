@@ -7,18 +7,20 @@ import { AudioData } from '@/lib/helper';
 interface AudioCardProps {
   track: AudioData;
   canPlay: boolean;
+  opened: boolean;
   canCopy?: boolean;
   copyHandler?: (id: string, type: 'audio' | 'video') => void;
   canShare?: boolean;
   shareHandler?: (id: string, type: 'audio' | 'video') => void;
   setCurrentMedia?: React.Dispatch<any>;
-  playMedia: (src: string, type: 'audio' | 'video') => void;
+  playMedia: (track: AudioData) => void;
   removeMedia: (id: string, type: 'audio' | 'video') => void;
 }
 
 export default function AudioCard({
   track,
   canPlay,
+  opened,
   canCopy,
   copyHandler,
   canShare,
@@ -38,11 +40,16 @@ export default function AudioCard({
             if (canPlay) {
               setCurrentMedia ? setCurrentMedia(track) : null;
               setTimeout(() => {
-                playMedia(track.url as string, 'audio');
+                playMedia(track);
               }, 500);
             }
           }}
         >
+          {track.status === 'completed' && !opened && (
+            <div className='absolute -top-5 right-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 text-xs text-white'>
+              New
+            </div>
+          )}
           <img
             src={track.talkingAvatar?.image_url}
             alt='track poster'
@@ -111,6 +118,13 @@ export default function AudioCard({
                 <i className='fas fa-trash'></i>
               </button>
             ) : null}
+            {/* <button
+              className='flex items-center justify-center text-base text-red-500'
+              title='Delete audio'
+              onClick={() => removeMedia(track.audioId as string, 'audio')}
+            >
+              <i className='fas fa-trash'></i>
+            </button> */}
           </div>
         </div>
       </div>

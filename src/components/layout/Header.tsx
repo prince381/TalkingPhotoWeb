@@ -25,7 +25,7 @@ export default function Header() {
   const logout = () => {
     auth.signOut().then(() => {
       Cookies.remove('allinUserCred');
-      router.push('/login');
+      router.reload();
     });
   };
 
@@ -70,7 +70,10 @@ export default function Header() {
               </li>
               <li>
                 {user ? (
-                  <button className='border-none bg-none text-xs transition-all duration-75 hover:text-blue-400'>
+                  <button
+                    className='border-none bg-none text-xs transition-all duration-75 hover:text-blue-400'
+                    onClick={logout}
+                  >
                     Log out
                   </button>
                 ) : (
@@ -141,7 +144,9 @@ export default function Header() {
           </li>
           <li>
             {user ? (
-              <button className='border-none bg-none'>Log out</button>
+              <button className='border-none bg-none' onClick={logout}>
+                Log out
+              </button>
             ) : (
               <Link
                 href='/login'

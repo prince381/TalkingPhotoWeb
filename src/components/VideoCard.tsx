@@ -7,18 +7,20 @@ import { VideoData } from '@/lib/helper';
 interface VideoCardProps {
   track: VideoData;
   canPlay: boolean;
+  opened: boolean;
   canCopy?: boolean;
   copyHandler?: (id: string, type: 'audio' | 'video') => void;
   canShare?: boolean;
   shareHandler?: (id: string, type: 'audio' | 'video') => void;
   setCurrentMedia?: React.Dispatch<any>;
-  playMedia: (src: string, type: 'audio' | 'video') => void;
+  playMedia: (track: VideoData) => void;
   removeMedia: (id: string, type: 'audio' | 'video') => void;
 }
 
 export default function VideoCard({
   track,
   canPlay,
+  opened,
   canCopy,
   copyHandler,
   canShare,
@@ -38,11 +40,16 @@ export default function VideoCard({
             if (canPlay) {
               setCurrentMedia ? setCurrentMedia(track) : null;
               setTimeout(() => {
-                playMedia(track.url as string, 'video');
+                playMedia(track);
               }, 500);
             }
           }}
         >
+          {track.status === 'completed' && !opened && (
+            <div className='absolute -top-5 right-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 text-xs text-white'>
+              New
+            </div>
+          )}
           <img
             src={track.talkingAvatar?.image_url}
             alt='track poster'
@@ -111,6 +118,13 @@ export default function VideoCard({
                 <i className='fas fa-trash'></i>
               </button>
             ) : null}
+            {/* <button
+              className='flex items-center justify-center text-base text-red-500'
+              title='Delete audio'
+              onClick={() => removeMedia(track.videoId as string, 'video')}
+            >
+              <i className='fas fa-trash'></i>
+            </button> */}
           </div>
         </div>
       </div>

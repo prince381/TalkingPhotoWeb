@@ -241,6 +241,7 @@ export default function GetStarted() {
             audioId: uuidv4(),
             status: 'processing',
             type: 'audio',
+            opened: false,
           };
         } else {
           inputData = {
@@ -248,6 +249,7 @@ export default function GetStarted() {
             title,
             voiceId: targetVoiceId,
             type: 'video',
+            opened: false,
             inputText,
             test: !currentUserInfo.paid,
           };
@@ -281,7 +283,7 @@ export default function GetStarted() {
               return;
             }
 
-            const { talkingAvatar, title, voiceId, inputText, test } =
+            const { talkingAvatar, title, voiceId, inputText, test, opened } =
               inputData;
             await generateVideo(
               talkingAvatar,
@@ -290,7 +292,8 @@ export default function GetStarted() {
               title as string,
               uid,
               test as boolean,
-              'video'
+              'video',
+              opened
             );
             router.push('/gallery');
           }
@@ -619,6 +622,7 @@ export default function GetStarted() {
                     poster={`/images/${videoPreview[videoName].poster}.png`}
                     id='premade-vid'
                     className='h-full max-h-[300px] min-h-[300px] w-full max-w-[600px] object-cover md:max-h-[335px]'
+                    onContextMenu={(e) => e.preventDefault()}
                   ></video>
                 ) : (
                   <div className='skeleton-load z-1 absolute left-0 top-0 h-full max-h-[300px] min-h-[300px] w-full md:max-h-[335px]'></div>

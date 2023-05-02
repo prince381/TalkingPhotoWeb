@@ -64,6 +64,7 @@ export default function Home() {
                 className='h-full max-h-[500px] w-full md:max-h-[90vh] xl:min-w-[800px]'
                 preload='metadata'
                 poster='/images/allinone.png'
+                onContextMenu={(e) => e.preventDefault()}
               ></video>
               {!playing ? (
                 <i

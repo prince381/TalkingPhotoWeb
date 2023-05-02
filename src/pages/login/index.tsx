@@ -46,8 +46,16 @@ export default function Login() {
       }
 
       if (data.type === 'video') {
-        const { talkingAvatar, title, voiceId, type, inputText, test, id } =
-          _docData;
+        const {
+          talkingAvatar,
+          title,
+          voiceId,
+          type,
+          inputText,
+          test,
+          opened,
+          id,
+        } = _docData;
         await generateVideo(
           talkingAvatar,
           inputText,
@@ -55,7 +63,8 @@ export default function Login() {
           title,
           id,
           test,
-          type
+          type,
+          opened
         );
         Cookies.remove('allinTempData');
       }

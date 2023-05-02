@@ -83,6 +83,7 @@ export type AudioData = {
   audioId: string;
   status: 'processing' | 'completed' | 'failed';
   type?: 'video' | 'audio';
+  opened?: boolean;
 };
 
 export type VideoData = {
@@ -97,6 +98,7 @@ export type VideoData = {
   timestamp: Date;
   type?: 'video' | 'audio';
   test?: boolean;
+  opened?: boolean;
 };
 
 // !STARTERCONF This OG is generated from https://github.com/theodorusclarence/og
@@ -387,7 +389,8 @@ export async function generateVideo(
   title: string,
   id: string,
   test: boolean,
-  type: 'video' | 'audio'
+  type: 'video' | 'audio',
+  opened: boolean
 ) {
   try {
     const voiceBlob = await getVoiceOver(inputText, voiceId);
@@ -426,6 +429,7 @@ export async function generateVideo(
       timestamp,
       type,
       test,
+      opened,
     });
 
     const userDoc = doc(firestore, `Users/${id}`);
