@@ -71,7 +71,7 @@ export default function Header() {
               <li>
                 {user ? (
                   <button
-                    className='border-none bg-none text-xs transition-all duration-75 hover:text-blue-400'
+                    className='border-none bg-none text-sm transition-all duration-75 hover:text-blue-400'
                     onClick={logout}
                   >
                     Log out
