@@ -275,14 +275,6 @@ export default function GetStarted() {
           }
 
           if (artifactType === 'video') {
-            if (
-              (currentUserInfo.paid && currentUserInfo.videos >= 3) ||
-              (!currentUserInfo.paid && currentUserInfo.videos >= 1)
-            ) {
-              setLoading(false);
-              return;
-            }
-
             const { talkingAvatar, title, voiceId, inputText, test, opened } =
               inputData;
             await generateVideo(
@@ -480,10 +472,10 @@ export default function GetStarted() {
                     currentUserInfo.videos >= 10) ||
                   (artifactType === 'audio' &&
                     !currentUserInfo.paid &&
-                    currentUserInfo.videos >= 3) ||
+                    currentUserInfo.audios >= 3) ||
                   (artifactType === 'audio' &&
                     currentUserInfo.paid &&
-                    currentUserInfo.videos >= 100)
+                    currentUserInfo.audios >= 100)
                 ) {
                   setSubscribing(true);
                   router.push(
