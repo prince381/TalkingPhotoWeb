@@ -318,7 +318,11 @@ export default function Gallery() {
                   controls
                   preload='auto'
                   playsInline
-                  controlsList='nodownload noremoteplayback noplaybackrate'
+                  controlsList={
+                    !currentUser || !currentUser.paid
+                      ? 'nodownload noremoteplayback noplaybackrate'
+                      : ''
+                  }
                   onContextMenu={(e) => e.preventDefault()}
                 ></video>
                 {/* <img
@@ -338,7 +342,11 @@ export default function Gallery() {
                 controls
                 preload='auto'
                 playsInline
-                controlsList='nodownload noremoteplayback noplaybackrate'
+                controlsList={
+                  !currentUser || !currentUser.paid
+                    ? 'nodownload noremoteplayback noplaybackrate'
+                    : ''
+                }
               ></audio>
             )}
             {!canPlay && (
