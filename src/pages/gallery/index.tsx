@@ -7,6 +7,7 @@ import copy from 'copy-to-clipboard';
 import {
   collection,
   doc,
+  DocumentData,
   onSnapshot,
   orderBy,
   query,
@@ -72,6 +73,22 @@ export default function Gallery() {
     } catch (error) {
       console.log('Something went wrong while fetching saved podcasts:', error);
       setIsError(true);
+    }
+  };
+
+  const getSavedUser = () => {
+    const userCred = Cookies.get('allinUserCred');
+
+    if (userCred) {
+      const user = JSON.parse(userCred);
+      const userRef = doc(firestore, 'Users', user.uid);
+      onSnapshot(userRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const { email, paid, uid, videos, audios } =
+            snapshot.data() as DocumentData;
+          setCurrentUser({ email, paid, uid, videos, audios });
+        }
+      });
     }
   };
 
@@ -181,12 +198,7 @@ export default function Gallery() {
 
   useEffect(() => {
     getSavedPodcasts();
-
-    const userCred = Cookies.get('allinUserCred');
-    if (userCred) {
-      const user = JSON.parse(userCred);
-      setCurrentUser(user);
-    }
+    getSavedUser();
   }, []);
 
   // useEffect(() => {
@@ -197,9 +209,13 @@ export default function Gallery() {
     (async () => {
       try {
         if (tracks && tracks.length > 0) {
-          const unprocessedTracks = tracks.filter(
-            (track) => track.status === 'processing'
-          );
+          const unprocessedTracks = tracks.filter((track) => {
+            if (currentUser && currentUser.uid)
+              return (
+                track.status === 'processing' && track.id === currentUser.uid
+              );
+            else return false;
+          });
           if (unprocessedTracks.length > 0) {
             const tasks = unprocessedTracks.map(async (track) => {
               if (track.type === 'audio') return await generateAudio(track);
@@ -320,7 +336,7 @@ export default function Gallery() {
                   playsInline
                   controlsList={
                     !currentUser || !currentUser.paid
-                      ? 'nodownload noremoteplayback noplaybackrate'
+                      ? 'nodownload noremoteplayback noplaybackrate nocontextmenu'
                       : ''
                   }
                   onContextMenu={(e) => e.preventDefault()}
@@ -364,8 +380,8 @@ export default function Gallery() {
         </div>
         <div className='mx-auto w-[95%] max-w-[1200px] py-6 lg:flex lg:justify-between'>
           <div className='h-max w-full lg:mr-8'>
-            <div className='flex items-center justify-between'>
-              <h1 className='text-base md:text-2xl xl:text-4xl'>Podcasts</h1>
+            <div className='flex items-center justify-end lg:justify-between'>
+              {/* <h1 className='text-base md:text-2xl xl:text-4xl'>Podcasts</h1> */}
               <button
                 className='flex cursor-pointer items-center md:text-base lg:hidden'
                 onClick={() => setShowAudio(true)}
@@ -389,7 +405,7 @@ export default function Gallery() {
               </div>
             ) : null}
             {tracks.length > 0 && !loading ? (
-              <div className='bg-main mt-8 h-max w-full rounded-2xl p-2 md:p-3'>
+              <div className='bg-main mt-8 h-max w-full rounded-2xl p-2 md:p-3 lg:mt-0'>
                 <div className='grid h-max w-full grid-cols-1 gap-5 xs:grid-cols-2 md:grid-cols-3 lg:gap-8'>
                   {tracks
                     .filter((track) => track.status === 'completed')

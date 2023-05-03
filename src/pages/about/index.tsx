@@ -32,14 +32,14 @@ export default function Home() {
     <>
       <Seo templateTitle='Home' />
       <main>
-        <div className='fixed -left-10 -z-10 w-screen md:left-0'>
+        <div className='fixed -left-10 -z-10 hidden w-screen md:left-0 lg:block'>
           <img src='/images/domino.png' alt='background fixed image' />
         </div>
         <div className='flex min-h-[70vh] w-screen flex-col items-center justify-center'>
           <div className='mx-auto flex h-max min-h-[70vh] w-[95%] max-w-[1200px] flex-col py-20 md:flex-row md:items-center'>
-            <div className='mb-8 mr-10 flex flex-col items-center justify-center md:mb-0 md:w-[50%]'>
+            <div className='mb-8 flex flex-col items-center justify-center md:mr-10 md:mb-0 md:w-[50%]'>
               <h2 className='mb-5 text-5xl text-gray-800'>Want more?</h2>
-              <p className='text-center text-sm text-gray-800 md:text-base'>
+              <p className='w-full max-w-[400px] text-center text-sm text-gray-800 md:text-base xl:max-w-[500px]'>
                 Hey folks, it's Jason here! Let me introduce you to AllInPod.ai,
                 an incredible AI audio experience created by the talented team
                 at{' '}

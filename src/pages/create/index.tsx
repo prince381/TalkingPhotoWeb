@@ -409,18 +409,21 @@ export default function GetStarted() {
               <label className='flex items-center text-base font-bold lg:text-lg xxl:text-xl'>
                 Choose the type:
               </label>
-              <select
-                name='artifactType'
-                id='artifactType'
-                className='sub-card mt-2 w-full rounded-lg border-none py-3 outline-none'
-                defaultValue='audio'
-                onChange={(e) => {
-                  setArtifactType(e.target.value as 'audio' | 'video');
-                }}
-              >
-                <option value='audio'>Only audio</option>
-                <option value='video'>Video</option>
-              </select>
+              <div className='relative h-max w-full'>
+                <select
+                  name='artifactType'
+                  id='artifactType'
+                  className='sub-card mt-2 w-full rounded-lg border-none py-3 outline-none'
+                  defaultValue='audio'
+                  onChange={(e) => {
+                    setArtifactType(e.target.value as 'audio' | 'video');
+                  }}
+                >
+                  <option value='audio'>Only audio</option>
+                  <option value='video'>Video</option>
+                </select>
+                <i className='fas fa-chevron-down absolute top-1/2 right-4 z-10 -translate-y-[30%] text-base font-bold text-black'></i>
+              </div>
             </div>
             {artifactType === 'video' &&
             !currentUserInfo.paid &&
@@ -499,7 +502,13 @@ export default function GetStarted() {
                     currentUserInfo.videos >= 1) ||
                   (artifactType === 'video' &&
                     currentUserInfo.paid &&
-                    currentUserInfo.videos >= 3)
+                    currentUserInfo.videos >= 10) ||
+                  (artifactType === 'audio' &&
+                    !currentUserInfo.paid &&
+                    currentUserInfo.audios >= 3) ||
+                  (artifactType === 'audio' &&
+                    currentUserInfo.paid &&
+                    currentUserInfo.audios >= 100)
                 ? 'Subscribe'
                 : 'Submit'}
             </button>
@@ -515,7 +524,11 @@ export default function GetStarted() {
               incredible power of AI. Join us on this journey of transforming
               podcasting, blogging, and more with AI voice and video generation.
               Follow us to stay up-to-date on our latest developments. Be a part
-              of the future of content creation. My Creativity Box team.
+              of the future of content creation.{' '}
+              <a href='https://mycreativitybox.com' className='underline'>
+                My Creativity Box team
+              </a>
+              .
             </p>
           </div>
           <div className='card flex h-max w-full flex-col items-center rounded-lg px-2.5 py-4 shadow-sm xs:px-4 lg:py-6 xl:py-10'>
@@ -614,6 +627,8 @@ export default function GetStarted() {
                     poster={`/images/${videoPreview[videoName].poster}.png`}
                     id='premade-vid'
                     className='h-full max-h-[300px] min-h-[300px] w-full max-w-[600px] object-cover md:max-h-[335px]'
+                    controls
+                    controlsList='nodownload nofullscreen noremoteplayback nocontextmenu noplaybackrate'
                     onContextMenu={(e) => e.preventDefault()}
                   ></video>
                 ) : (
@@ -768,7 +783,7 @@ export default function GetStarted() {
                     else setInputText(text || '');
 
                     // Check if the text includes symbols
-                    if (text && text.match(/[^a-zA-Z0-9\s,.'"!?-]/g)) {
+                    if (text && text.match(/[^a-zA-Z0-9\s;:,.'"`«»!?-]/g)) {
                       setHasSymbol(true);
                     } else {
                       setHasSymbol(false);

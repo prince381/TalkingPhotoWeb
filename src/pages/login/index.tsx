@@ -29,8 +29,8 @@ export default function Login() {
   const [loginState, setLoginState] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const termsRef = React.useRef<HTMLInputElement>(null);
-  const newsRef = React.useRef<HTMLInputElement>(null);
+  const [acceptTerms, setAcceptTerms] = useState(true);
+  const [getNews, setGetNews] = useState(true);
 
   // Save temp data to firestore
   async function saveTempDataToDb(uid: string) {
@@ -82,7 +82,7 @@ export default function Login() {
   }
 
   const authenticateUserWithEmail = () => {
-    if (!loginState && termsRef.current?.checked === false) {
+    if (!acceptTerms) {
       alert('Please accept the terms and conditions');
       return;
     }
@@ -112,7 +112,7 @@ export default function Login() {
   };
 
   const handleGoogleAuth = () => {
-    if (!loginState && termsRef.current?.checked === false) {
+    if (!acceptTerms) {
       alert('Please accept the terms and conditions');
       return;
     }
@@ -131,7 +131,7 @@ export default function Login() {
           { expires: 7 }
         );
 
-        if (!loginState && newsRef.current?.checked === true) {
+        if (getNews) {
           const _doc = doc(firestore, 'UpdateSubscribers', uid);
           await setDoc(_doc, { id: uid, email });
         }
@@ -236,35 +236,49 @@ export default function Login() {
               />
               {loginState ? 'Login with Google' : 'Sign up with Google'}
             </button>
-            {!loginState && (
-              <div className='mt-5 flex flex-col'>
-                <div className='mb-4 w-full'>
-                  <input
-                    type='checkbox'
-                    id='terms'
-                    className='mr-2 inline-block rounded-sm checked:border-none checked:outline-none'
-                    ref={termsRef}
-                  />
-                  <label htmlFor='terms' className='cursor-pointer text-sm'>
-                    I agree to the{' '}
-                    <Link href='/terms' className='text-blue-500'>
-                      terms of service
-                    </Link>
-                  </label>
-                </div>
-                <div>
-                  <input
-                    type='checkbox'
-                    id='info'
-                    className='mr-2 inline-block rounded-sm checked:border-none checked:outline-none'
-                    ref={newsRef}
-                  />
-                  <label htmlFor='info' className='cursor-pointer text-sm'>
-                    I want to receive product updates
-                  </label>
-                </div>
+            {/* {!loginState && ( */}
+            <div className='mt-5 flex flex-col'>
+              <div className='mb-4 w-full'>
+                <input
+                  type='checkbox'
+                  id='terms'
+                  className='mr-2 inline-block rounded-sm checked:border-none checked:outline-none'
+                  checked={acceptTerms ? true : false}
+                  onChange={() => {
+                    if (!acceptTerms) {
+                      setAcceptTerms(true);
+                    } else {
+                      setAcceptTerms(false);
+                    }
+                  }}
+                />
+                <label htmlFor='terms' className='cursor-pointer text-sm'>
+                  I agree to the{' '}
+                  <Link href='/terms' className='text-blue-500'>
+                    terms of service
+                  </Link>
+                </label>
               </div>
-            )}
+              <div>
+                <input
+                  type='checkbox'
+                  id='info'
+                  className='mr-2 inline-block rounded-sm checked:border-none checked:outline-none'
+                  checked={getNews ? true : false}
+                  onChange={() => {
+                    if (!getNews) {
+                      setGetNews(true);
+                    } else {
+                      setGetNews(false);
+                    }
+                  }}
+                />
+                <label htmlFor='info' className='cursor-pointer text-sm'>
+                  I want to receive product updates
+                </label>
+              </div>
+            </div>
+            {/* )} */}
           </form>
         </div>
       </div>

@@ -67,15 +67,19 @@ export default function Home() {
                 onContextMenu={(e) => e.preventDefault()}
               ></video>
               {!playing ? (
-                <i
-                  className='fas fa-play z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-blue-500 shadow-xl md:-translate-x-[10%]'
-                  onClick={playVideo}
-                ></i>
+                <div className='z-1 absolute left-[50%] top-[50%] flex h-20 w-20 -translate-x-[50%] -translate-y-[50%] items-center justify-center rounded-full border-4 border-blue-500 md:-translate-x-[10%]'>
+                  <i
+                    className='fas fa-play cursor-pointer text-5xl text-blue-500 shadow-xl'
+                    onClick={playVideo}
+                  ></i>
+                </div>
               ) : (
-                <i
-                  className='fas fa-pause z-1 absolute left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer text-5xl text-blue-500 opacity-0 shadow-xl transition-opacity group-hover:opacity-100 md:-translate-x-[10%]'
-                  onClick={playVideo}
-                ></i>
+                <div className='z-1 absolute left-[50%] top-[50%] flex h-20 w-20 -translate-x-[50%] -translate-y-[50%] items-center justify-center rounded-full border-4 border-blue-500 opacity-0 transition-opacity group-hover:opacity-100 md:-translate-x-[10%]'>
+                  <i
+                    className='fas fa-pause cursor-pointer text-5xl text-blue-500 shadow-xl'
+                    onClick={playVideo}
+                  ></i>
+                </div>
               )}
             </div>
           </div>
