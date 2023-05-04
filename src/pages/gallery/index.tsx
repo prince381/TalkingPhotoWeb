@@ -181,7 +181,8 @@ export default function Gallery() {
 
   const shareToTwitter = async (id: string, type: 'audio' | 'video') => {
     const url = await createTwitterShareContent(id, type);
-    window.open(url, '_blank');
+    // window.open(url, '_blank');
+    window.location.href = url;
   };
 
   const copyMediaLink = async (id: string, type: 'audio' | 'video') => {
