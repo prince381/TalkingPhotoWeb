@@ -36,15 +36,15 @@ export default function Success() {
         const { data: response } = await axios.get(url);
         // console.log('Response:', response);
         const {
-          customer_details: { email },
+          customer_details: { email: paymentEmail },
           payment_status,
           payment_intent,
         } = response.session;
 
         const user = Cookies.get('allinUserCred');
 
-        if (user && email && payment_status) {
-          const { uid } = JSON.parse(user);
+        if (user && payment_status) {
+          const { uid, email } = JSON.parse(user);
           const q = query(
             collection(firestore, 'Users'),
             where('email', '==', email),
@@ -54,11 +54,15 @@ export default function Success() {
           const userDocId = userDoc.docs[0].id;
           const userDocRef = doc(firestore, 'Users', userDocId);
           await updateDoc(userDocRef, {
+            paymentEmail,
             paid: payment_status === 'paid' ? true : false,
             paymentIntentId: payment_intent,
             videos: 0,
+            audios: 0,
           });
         }
+        router.push('/create');
+      } else {
         router.push('/create');
       }
     })();

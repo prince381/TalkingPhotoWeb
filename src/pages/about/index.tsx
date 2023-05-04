@@ -54,6 +54,15 @@ export default function Home() {
                 have a blast crafting your own lyrical masterpieces with
                 AllInPod.ai. Give it a whirl, and unleash your creativity!
               </p>
+              <p className='text-center text-sm text-gray-800 md:text-base'>
+                Contact us to collaborate:{' '}
+                <a
+                  href='mailto:hello@allinpod.ai'
+                  className='text-sm text-blue-500 md:text-base'
+                >
+                  hello@allinpod.ai
+                </a>
+              </p>
             </div>
             <div className='group relative h-full min-h-[50vh] w-full md:h-[70vh] md:w-[50%]'>
               <video
