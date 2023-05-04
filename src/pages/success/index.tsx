@@ -4,6 +4,7 @@ import { isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
+import Link from 'next/link';
 import router from 'next/router';
 import React, { useEffect, useLayoutEffect } from 'react';
 
@@ -16,6 +17,9 @@ import { auth, firestore } from '../../../firebase/firebase';
 
 export default function Login() {
   // const userInfo = React.useContext(UserContext);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
+  const [success, setSuccess] = React.useState(false);
 
   useLayoutEffect(() => {
     const user = Cookies.get('userCredential');
@@ -76,8 +80,11 @@ export default function Login() {
     (async () => {
       try {
         const user = Cookies.get('allinUserCred');
+        if (user) {
+          router.push('/gallery');
+        }
 
-        if (isSignInWithEmailLink(auth, window.location.href) && !user) {
+        if (isSignInWithEmailLink(auth, window.location.href)) {
           const userMail = Cookies.get('allin_auth_mail');
 
           if (!userMail) {
@@ -90,42 +97,93 @@ export default function Login() {
             .then(async (results) => {
               Cookies.remove('allin_auth_mail');
               const { email, displayName, uid } = results.user;
-              await saveTempDataToDb(uid);
-              await saveUserInfo(uid, email as string);
               Cookies.set(
                 'allinUserCred',
                 JSON.stringify({ email, displayName, uid }),
                 { expires: 7 }
               );
-              router.push('/gallery');
+
+              setLoading(false);
+              setSuccess(true);
+
+              try {
+                await saveTempDataToDb(uid);
+                await saveUserInfo(uid, email as string);
+              } catch (error) {
+                console.log(error);
+              } finally {
+                router.push('/gallery');
+              }
             })
             .catch((error) => {
               console.log(error);
             });
-        }
-
-        if (user) {
-          router.push('/gallery');
+        } else {
+          setLoading(false);
+          setError(true);
+          return;
         }
       } catch (error) {
+        console.log(error);
+        setLoading(false);
+        setError(true);
         return;
       }
     })();
   }, []);
 
-  return (
-    <>
-      <Seo templateTitle='Login' />
-      <div className='flex h-screen flex-col items-center justify-center'>
-        <Image
-          src='/images/success.png'
-          alt='check-circle'
-          width={80}
-          height={80}
-        />
-        <h1 className='mt-4 text-2xl font-bold'>Login Successful</h1>
-        <p className='text-base'>Redirecting...</p>
-      </div>
-    </>
-  );
+  if (loading)
+    return (
+      <>
+        <Seo templateTitle='Login' />
+        <div className='flex h-screen flex-col items-center justify-center'>
+          <Image
+            src='/images/cog-loading.gif'
+            alt='loading'
+            width={80}
+            height={80}
+          />
+          <p className='mt-4 text-base'>We're logging you in. Please wait...</p>
+        </div>
+      </>
+    );
+
+  if (error)
+    return (
+      <>
+        <Seo templateTitle='Login' />
+        <div className='flex h-screen flex-col items-center justify-center'>
+          <div className='relative'>
+            <i className='fas fa-user text-[70px]'></i>
+            <i className='fas fa-exclamation-circle absolute -bottom-3 -right-4 text-3xl text-red-600'></i>
+          </div>
+          <p className='mt-5 text-base'>
+            Something went wrong while trying to log in. Please try again.
+          </p>
+          <Link
+            href='/create'
+            className='cursor-pointer text-base text-blue-500 hover:underline'
+          >
+            Return to the playground
+          </Link>
+        </div>
+      </>
+    );
+
+  if (success)
+    return (
+      <>
+        <Seo templateTitle='Login' />
+        <div className='flex h-screen flex-col items-center justify-center'>
+          <Image
+            src='/images/success.png'
+            alt='check-circle'
+            width={80}
+            height={80}
+          />
+          <h1 className='mt-4 text-2xl font-bold'>Login Successful</h1>
+          <p className='text-base'>Redirecting...</p>
+        </div>
+      </>
+    );
 }
