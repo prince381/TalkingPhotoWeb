@@ -190,6 +190,7 @@ export default function GetStarted() {
     return dStr;
   };
 
+  // play current page
   const playCurrentVideo = (id: string) => {
     const videoFiles = document.querySelectorAll('video');
     videoFiles.forEach((video) => {
