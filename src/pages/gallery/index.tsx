@@ -468,7 +468,14 @@ export default function Gallery() {
               </div>
               <div className='mt-8 flex min-h-[] w-full max-w-[300px] flex-col items-center'>
                 {tracks
-                  .filter((track) => track.status !== 'completed')
+                  .filter((track) => {
+                    if (currentUser && currentUser.uid)
+                      return (
+                        track.status !== 'completed' &&
+                        track.id === currentUser.uid
+                      );
+                    else return false;
+                  })
                   .map((track) => {
                     return track.type === 'audio' ? (
                       <AudioCard
@@ -512,7 +519,7 @@ export default function Gallery() {
                   <Link href='/create' className='inline-block h-max w-full'>
                     <i className='fas fa-microphone text-4xl'></i>
                     <span className='mt-5 inline-block text-base'>
-                      Click here to generate a new audio
+                      Click here to generate a new audio/video
                     </span>
                   </Link>
                 </button>
